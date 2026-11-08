@@ -7,11 +7,11 @@ export default {
   theme: {
     extend: {
       colors: {
-        ink: '#0B0B0B',
-        cream: '#F7F3EC',
-        sand: '#EDE6D8',
-        gold: '#C7A353',
-        goldDark: '#A9873C',
+        ink: '#1C1B19',
+        cream: '#FFFFFF',
+        sand: '#F4F2EE',
+        gold: '#B89355',
+        goldDark: '#96763E',
       },
       fontFamily: {
         display: ['"Cormorant Garamond"', 'Georgia', 'serif'],

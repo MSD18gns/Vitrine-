@@ -1,24 +1,41 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import products from "../data/products";
+import { useProducts } from "../hooks/useProducts";
 import ProductCard from "../components/ProductCard";
 import { IconSearch, IconClose } from "../components/icons";
 
-const ALL_SIZES = [...new Set(products.flatMap((p) => p.sizes))].sort();
-const ALL_COLORS = [...new Set(products.flatMap((p) => p.colors))].sort();
-const MAX_PRICE = Math.max(...products.map((p) => p.price));
-
 export default function Shop() {
+  const { products, loading } = useProducts();
   const { category } = useParams(); // présent sur /collections/:category
   const [searchParams] = useSearchParams();
   const filtreRapide = searchParams.get("filtre"); // nouveautes | meilleures-ventes | promotions
 
+  const ALL_SIZES = useMemo(
+    () => [...new Set(products.flatMap((p) => p.sizes))].sort(),
+    [products]
+  );
+  const ALL_COLORS = useMemo(
+    () => [...new Set(products.flatMap((p) => p.colors))].sort(),
+    [products]
+  );
+  const MAX_PRICE = useMemo(
+    () => (products.length ? Math.max(...products.map((p) => p.price)) : 0),
+    [products]
+  );
+
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState(category || "toutes");
-  const [priceMax, setPriceMax] = useState(MAX_PRICE);
+  const [priceMax, setPriceMax] = useState(null);
   const [sizeFilter, setSizeFilter] = useState("toutes");
   const [colorFilter, setColorFilter] = useState("toutes");
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  // Initialise le curseur de prix une fois le catalogue chargé.
+  useEffect(() => {
+    if (priceMax === null && MAX_PRICE > 0) setPriceMax(MAX_PRICE);
+  }, [MAX_PRICE, priceMax]);
+
+  const effectivePriceMax = priceMax === null ? MAX_PRICE : priceMax;
 
   // Resynchronise le filtre catégorie quand on navigue entre
   // /collections/femmes et /collections/hommes.
@@ -31,14 +48,14 @@ export default function Shop() {
       if (categoryFilter !== "toutes" && p.category !== categoryFilter) return false;
       if (sizeFilter !== "toutes" && !p.sizes.includes(sizeFilter)) return false;
       if (colorFilter !== "toutes" && !p.colors.includes(colorFilter)) return false;
-      if (p.price > priceMax) return false;
+      if (p.price > effectivePriceMax) return false;
       if (search.trim() && !p.name.toLowerCase().includes(search.trim().toLowerCase())) return false;
       if (filtreRapide === "nouveautes" && !p.isNew) return false;
       if (filtreRapide === "meilleures-ventes" && !p.isBestSeller) return false;
       if (filtreRapide === "promotions" && !p.oldPrice) return false;
       return true;
     });
-  }, [categoryFilter, sizeFilter, colorFilter, priceMax, search, filtreRapide]);
+  }, [products, categoryFilter, sizeFilter, colorFilter, effectivePriceMax, search, filtreRapide]);
 
   const titre =
     category === "femmes" ? "Collection Femmes" :
@@ -56,6 +73,14 @@ export default function Shop() {
     setColorFilter("toutes");
   }
 
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-5 md:px-8 py-24 text-center text-ink/40">
+        Chargement du catalogue...
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-5 md:px-8 py-14">
       <div className="mb-10">
@@ -69,9 +94,10 @@ export default function Shop() {
           <FiltersPanel
             search={search} setSearch={setSearch}
             categoryFilter={categoryFilter} setCategoryFilter={setCategoryFilter}
-            priceMax={priceMax} setPriceMax={setPriceMax}
+            priceMax={effectivePriceMax} setPriceMax={setPriceMax} maxPrice={MAX_PRICE}
             sizeFilter={sizeFilter} setSizeFilter={setSizeFilter}
             colorFilter={colorFilter} setColorFilter={setColorFilter}
+            allSizes={ALL_SIZES} allColors={ALL_COLORS}
             onReset={resetFilters}
           />
         </aside>
@@ -115,9 +141,10 @@ export default function Shop() {
             <FiltersPanel
               search={search} setSearch={setSearch}
               categoryFilter={categoryFilter} setCategoryFilter={setCategoryFilter}
-              priceMax={priceMax} setPriceMax={setPriceMax}
+              priceMax={effectivePriceMax} setPriceMax={setPriceMax} maxPrice={MAX_PRICE}
               sizeFilter={sizeFilter} setSizeFilter={setSizeFilter}
               colorFilter={colorFilter} setColorFilter={setColorFilter}
+              allSizes={ALL_SIZES} allColors={ALL_COLORS}
               onReset={resetFilters}
             />
             <button onClick={() => setFiltersOpen(false)} className="btn-primary w-full mt-8">
@@ -133,9 +160,10 @@ export default function Shop() {
 function FiltersPanel({
   search, setSearch,
   categoryFilter, setCategoryFilter,
-  priceMax, setPriceMax,
+  priceMax, setPriceMax, maxPrice,
   sizeFilter, setSizeFilter,
   colorFilter, setColorFilter,
+  allSizes, allColors,
   onReset,
 }) {
   return (
@@ -183,7 +211,7 @@ function FiltersPanel({
         <input
           type="range"
           min={0}
-          max={MAX_PRICE}
+          max={maxPrice}
           step={1000}
           value={priceMax}
           onChange={(e) => setPriceMax(Number(e.target.value))}
@@ -199,7 +227,7 @@ function FiltersPanel({
           className="w-full text-sm border border-ink/20 bg-transparent px-3 py-2.5 focus:outline-none focus:border-gold"
         >
           <option value="toutes">Toutes les tailles</option>
-          {ALL_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
+          {allSizes.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
 
@@ -211,7 +239,7 @@ function FiltersPanel({
           className="w-full text-sm border border-ink/20 bg-transparent px-3 py-2.5 focus:outline-none focus:border-gold"
         >
           <option value="toutes">Toutes les couleurs</option>
-          {ALL_COLORS.map((c) => <option key={c} value={c}>{c}</option>)}
+          {allColors.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
 

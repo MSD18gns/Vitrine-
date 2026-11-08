@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import products from "../data/products";
+import { useProducts } from "../hooks/useProducts";
 import ProductCard from "../components/ProductCard";
 import { useCart } from "../context/CartContext";
 import { formatPrice, orderProductOnWhatsApp } from "../utils/whatsapp";
@@ -9,11 +9,20 @@ import { ProductPlaceholder } from "../components/Placeholder";
 
 export default function ProductDetail() {
   const { id } = useParams();
+  const { products, loading } = useProducts();
   const product = products.find((p) => String(p.id) === id);
+
+  if (loading) {
+    return (
+      <div className="max-w-xl mx-auto px-5 py-28 text-center text-ink/40">
+        Chargement...
+      </div>
+    );
+  }
 
   if (!product) return <NotFoundProduct />;
 
-  return <ProductDetailView product={product} />;
+  return <ProductDetailView product={product} allProducts={products} />;
 }
 
 function NotFoundProduct() {
@@ -26,7 +35,7 @@ function NotFoundProduct() {
   );
 }
 
-function ProductDetailView({ product }) {
+function ProductDetailView({ product, allProducts }) {
   const { addItem } = useCart();
   const [activeImage, setActiveImage] = useState(0);
   const [size, setSize] = useState(product.sizes[0]);
@@ -38,7 +47,7 @@ function ProductDetailView({ product }) {
   // Nombre de vues de la galerie (en attendant les vraies photos).
   const imageCount = hasRealPhotos ? product.images.length : 3;
 
-  const similar = products.filter(
+  const similar = allProducts.filter(
     (p) => p.category === product.category && p.id !== product.id
   ).slice(0, 4);
 

@@ -23,9 +23,9 @@ export default function ProductCard({ product }) {
   return (
     <div className="group animate-fadeUp">
       <Link to={`/produit/${product.id}`} className="block relative overflow-hidden bg-sand aspect-[4/5]">
-        {product.image ? (
+        {product.images && product.images.length > 0 ? (
           <img
-            src={product.image}
+            src={product.images[0]}
             alt={product.name}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             loading="lazy"

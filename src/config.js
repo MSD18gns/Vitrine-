@@ -24,6 +24,12 @@ const siteConfig = {
 
   // Devise
   currency: "FCFA",
+
+  // Connexion Supabase (catalogue produits + compteur de commandes).
+  // La clé "anon" est publique par conception (protégée par les règles
+  // de sécurité définies côté base de données) — rien de secret ici.
+  supabaseUrl: "https://ejutptsipygbnobkrowt.supabase.co",
+  supabaseAnonKey: "sb_publishable_PgdoHL0wEIOvmsKFfZqBHg_-SSHfew3",
 };
 
 export default siteConfig;

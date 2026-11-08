@@ -78,6 +78,8 @@ export default function Footer() {
 
       <div className="border-t border-cream/10 py-6 text-center text-xs text-cream/50">
         © {year} {siteConfig.siteName}. Tous droits réservés.
+        {" · "}
+        <Link to="/admin" className="hover:text-gold">Admin</Link>
       </div>
     </footer>
   );
