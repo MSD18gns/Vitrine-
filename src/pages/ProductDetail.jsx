@@ -9,8 +9,16 @@ import { ProductPlaceholder } from "../components/Placeholder";
 
 export default function ProductDetail() {
   const { id } = useParams();
-  const { products, loading } = useProducts();
+  const { products, loading, error } = useProducts();
   const product = products.find((p) => String(p.id) === id);
+
+  if (error) {
+    return (
+      <div className="max-w-xl mx-auto px-5 py-28 text-center text-red-600/80">
+        Impossible de charger ce produit pour le moment. Réessayez dans un instant.
+      </div>
+    );
+  }
 
   if (loading) {
     return (

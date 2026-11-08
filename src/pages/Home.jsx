@@ -4,7 +4,7 @@ import ProductCard from "../components/ProductCard";
 import { HeroPlaceholder } from "../components/Placeholder";
 
 export default function Home() {
-  const { products, loading } = useProducts();
+  const { products, loading, error } = useProducts();
   const favoris = products.filter((p) => p.featured);
   const toShow = (favoris.length > 0 ? favoris : products).slice(0, 8);
 
@@ -47,7 +47,11 @@ export default function Home() {
           </Link>
         </div>
 
-        {loading ? (
+        {error ? (
+          <p className="text-red-600/80 text-center py-16">
+            Impossible de charger le catalogue pour le moment. Réessayez dans un instant.
+          </p>
+        ) : loading ? (
           <p className="text-ink/40 text-center py-16">Chargement du catalogue...</p>
         ) : toShow.length === 0 ? (
           <p className="text-ink/40 text-center py-16">

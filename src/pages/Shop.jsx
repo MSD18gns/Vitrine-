@@ -5,7 +5,7 @@ import ProductCard from "../components/ProductCard";
 import { IconSearch, IconClose } from "../components/icons";
 
 export default function Shop() {
-  const { products, loading } = useProducts();
+  const { products, loading, error } = useProducts();
   const { category } = useParams(); // présent sur /collections/:category
   const [searchParams] = useSearchParams();
   const filtreRapide = searchParams.get("filtre"); // nouveautes | meilleures-ventes | promotions
@@ -71,6 +71,14 @@ export default function Shop() {
     setPriceMax(MAX_PRICE);
     setSizeFilter("toutes");
     setColorFilter("toutes");
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-5 md:px-8 py-24 text-center text-red-600/80">
+        Impossible de charger le catalogue pour le moment. Réessayez dans un instant.
+      </div>
+    );
   }
 
   if (loading) {
