@@ -38,12 +38,12 @@ export default function ProductCard({ product }) {
           />
         )}
         {inPromo && (
-          <span className="absolute top-3 left-3 bg-ink text-cream text-[10px] tracking-widest2 uppercase px-3 py-1.5">
+          <span className="absolute top-3 left-3 rounded-full bg-ink/60 backdrop-blur-md border border-white/20 text-cream text-[10px] tracking-widest2 uppercase px-3 py-1.5 shadow-lg">
             Promo
           </span>
         )}
         {product.isNew && !inPromo && (
-          <span className="absolute top-3 left-3 bg-gold text-ink text-[10px] tracking-widest2 uppercase px-3 py-1.5">
+          <span className="absolute top-3 left-3 rounded-full bg-white/55 backdrop-blur-md border border-white/70 text-ink text-[10px] tracking-widest2 uppercase px-3 py-1.5 shadow-lg">
             Nouveau
           </span>
         )}

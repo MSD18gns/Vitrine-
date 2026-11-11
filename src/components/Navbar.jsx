@@ -26,7 +26,9 @@ export default function Navbar() {
   return (
     <header
       className={`sticky top-0 z-40 transition-all duration-300 ${
-        scrolled ? "bg-cream/95 backdrop-blur shadow-sm" : "bg-cream"
+        scrolled
+          ? "bg-white/70 backdrop-blur-xl backdrop-saturate-150 border-b border-white/60 shadow-[0_8px_30px_-12px_rgba(28,27,25,0.25)]"
+          : "bg-cream border-b border-transparent"
       }`}
     >
       <div className="max-w-7xl mx-auto px-5 md:px-8 h-20 flex items-center justify-between">
@@ -77,10 +79,10 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
-            className="absolute inset-0 bg-ink/50"
+            className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-          <div className="absolute left-0 top-0 bottom-0 w-[80%] max-w-xs bg-cream p-6 flex flex-col">
+          <div className="absolute left-0 top-0 bottom-0 w-[80%] max-w-xs bg-white/80 backdrop-blur-xl border-r border-white/70 shadow-2xl p-6 flex flex-col">
             <div className="flex items-center justify-between mb-10">
               <span className="font-display text-xl tracking-widest2">
                 {siteConfig.siteName}
