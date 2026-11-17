@@ -1,117 +1,148 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { ArrowRight, Route, Eye, LifeBuoy, ChevronRight, CalendarCheck } from 'lucide-react'
+import { ArrowRight, ChevronRight, CalendarCheck, Flame, Gem, Play, Sparkles, Activity, Trophy } from 'lucide-react'
 import Seo from '../components/Seo'
 import ArticleCard from '../components/ArticleCard'
 import ReminderCard from '../components/ReminderCard'
 import HadithCard from '../components/HadithCard'
 import Icon from '../components/Icon'
+import { DailyGoal } from '../components/StatsBar'
+import { Lantern } from '../components/Illustrations'
+import { iconFor } from '../components/stepIcons'
 import { Section } from '../components/ui'
 import { useContent } from '../hooks/useContent'
-import { PHASES } from '../content/programme'
+import { useAuth } from '../hooks/useAuth'
+import { useJourney } from '../hooks/useJourney'
+import { CHAPITRES, ETAPES, etapeById } from '../content/parcours'
 import { SECTIONS } from '../content/sections'
 import { topArticles } from '../services/articles'
+import { messageSerie } from '../services/gamification'
 import { dayOfYear, hijriToday } from '../lib/dates'
 
-const POPULAIRES = ['pornographie', 'scrolling', 'medisance', 'relations-amoureuses', 'regard-desir', 'negligence-reseaux']
+const POPULAIRES = ['pornographie', 'scrolling', 'medisance', 'relations-amoureuses']
 const HADITH_JOUR = ['peches-meprises', 'repentants', 'point-noir', 'main-tendue', 'regularite', 'laisse-pour-allah', 'montagne', 'joie-repentir', 'deux-bienfaits', 'bien-ou-silence']
+
+function salutation() {
+  const h = new Date().getHours()
+  return h < 5 ? 'Bonne nuit' : h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : 'Bonsoir'
+}
 
 export default function Home() {
   const { articles, article, categories } = useContent()
+  const { profile, user } = useAuth()
+  const { stats, courante, prefs, loading } = useJourney()
   const [top, setTop] = useState([])
   useEffect(() => { topArticles(6).then(setTop) }, [])
 
-  const sujet = articles[dayOfYear() % articles.length]
+  const next = etapeById(courante) || ETAPES[0]
+  const chap = CHAPITRES.find((c) => c.id === next.chap)
+  const NextIcon = iconFor(next.icon)
+  const name = profile?.display_name || (user?.email ? user.email.split('@')[0] : '')
+  const debutant = stats.etapesFaites === 0
   const populaires = (top.length >= 3 ? top.map((t) => t.slug) : POPULAIRES).map(article).filter(Boolean).slice(0, 4)
-  const derniers = [...articles].filter((a) => a.published_at).sort((a, b) => b.published_at.localeCompare(a.published_at)).slice(0, 4)
-  const recents = derniers.length ? derniers : articles.slice(-4).reverse()
-  const hadith = HADITH_JOUR[dayOfYear() % HADITH_JOUR.length]
+  const sujet = articles[dayOfYear() % articles.length]
+  const pctTotal = Math.round((stats.etapesFaites / ETAPES.length) * 100)
 
   return (
     <>
       <Seo />
-      {/* HERO */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-white to-brand-mist">
-        <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand-light blur-2xl" aria-hidden="true" />
-        <div className="container-ad relative pb-10 pt-8 sm:pb-16 sm:pt-14">
-          <p className="eyebrow mb-3 fade-up">ANDOU DIINEMA · {hijriToday()}</p>
-          <h1 className="fade-up font-display text-[34px] font-bold leading-[1.12] text-brand-deep sm:text-5xl">
-            Ce que tu banalises aujourd'hui peut éloigner ton cœur d'Allah demain.
-          </h1>
-          <p className="fade-up mt-5 max-w-2xl text-[16.5px] leading-relaxed text-slate-600">
-            Certaines habitudes semblent innocentes. Certains comportements deviennent normaux avec le temps. Pourtant, ils peuvent avoir des conséquences sur notre foi et notre relation avec Allah. Découvre ces dangers, comprends-les et commence à changer.
-          </p>
-          <div className="fade-up mt-7 grid gap-3 sm:flex">
-            <Link to="/programme" className="btn-primary"><Route size={19} />Commencer mon parcours</Link>
-            <Link to="/peches" className="btn-ghost"><Eye size={19} />Découvrir les dangers</Link>
-            <Link to="/sortir-des-peches" className="btn-secondary"><LifeBuoy size={19} />Apprendre à changer</Link>
+      {/* ACCUEIL PERSONNALISÉ */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-deep via-[#0a6c4c] to-brand text-white">
+        <div className="pattern-islamic absolute inset-0" aria-hidden="true" />
+        <div className="container-ad relative pb-8 pt-6 sm:pb-12 sm:pt-10">
+          <div className="flex items-start gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold uppercase tracking-[.16em] text-emerald-100">{hijriToday()}</p>
+              <h1 className="mt-2 font-display text-[28px] font-bold leading-tight text-white sm:text-4xl">
+                {salutation()}{name ? `, ${name}` : ''} 👋
+              </h1>
+              <p className="mt-2 text-[15.5px] text-emerald-50/90">{debutant ? "Ce que tu banalises aujourd'hui peut éloigner ton cœur d'Allah demain. Commence ton chemin, une étape à la fois." : messageSerie(stats)}</p>
+            </div>
+            <Lantern className="bob h-28 w-24 shrink-0 sm:h-36 sm:w-32" />
           </div>
-          <p className="mt-6 font-display text-[15px] italic text-brand">« Ouvre les yeux, purifie ton cœur et rapproche-toi d'Allah. »</p>
+
+          {!prefs.sobre && !loading && (
+            <div className="mt-5 grid grid-cols-3 gap-2">
+              <Link to="/recompenses" className="tap rounded-2xl bg-white/12 p-3 ring-1 ring-white/15" style={{ background: 'rgba(255,255,255,.1)' }}><p className="flex items-center gap-1 text-lg font-extrabold"><Flame size={18} className="fill-orange-300 text-orange-300" />{stats.serie}</p><p className="text-[11px] text-emerald-100">jour{stats.serie > 1 ? 's' : ''} de suite</p></Link>
+              <Link to="/recompenses" className="tap rounded-2xl p-3 ring-1 ring-white/15" style={{ background: 'rgba(255,255,255,.1)' }}><p className="flex items-center gap-1 text-lg font-extrabold"><Gem size={17} className="text-emerald-200" />{stats.xp}</p><p className="text-[11px] text-emerald-100">XP</p></Link>
+              <Link to="/recompenses" className="tap rounded-2xl p-3 ring-1 ring-white/15" style={{ background: 'rgba(255,255,255,.1)' }}><p className="text-lg font-extrabold">Niv. {stats.niveau.niveau}</p><p className="truncate text-[11px] text-emerald-100">{stats.niveau.nom}</p></Link>
+            </div>
+          )}
+
+          {/* CONTINUER */}
+          <Link to={`/parcours/etape/${next.id}`} className="tap mt-4 block rounded-3xl bg-white p-4 text-slate-900 shadow-xl">
+            <div className="flex items-center gap-3">
+              <span className="node-btn node-current pulse-ring h-14 w-14 shrink-0" style={{ boxShadow: '0 5px 0 #043a29' }}><NextIcon size={26} /></span>
+              <span className="min-w-0 flex-1">
+                <span className="eyebrow">{debutant ? 'Ta première étape' : 'Prochaine étape'} · Chapitre {chap.id}</span>
+                <span className="block truncate text-lg font-extrabold">{next.titre}</span>
+                <span className="block text-xs text-slate-500">Leçon, verset, hadith, quiz, mission · +20 XP</span>
+              </span>
+            </div>
+            <span className="btn-3d mt-4 w-full text-base"><Play size={18} className="fill-white" />{debutant ? 'Commencer mon parcours' : 'Continuer mon parcours'}</span>
+          </Link>
+          <div className="mt-3 flex items-center gap-2 text-xs text-emerald-100">
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/20"><div className="h-full rounded-full bg-white transition-all duration-700" style={{ width: `${pctTotal}%` }} /></div>
+            <span>{stats.etapesFaites}/{ETAPES.length} étapes</span>
+          </div>
         </div>
       </section>
 
       <div className="container-ad">
-        {/* SUJET DU JOUR */}
-        <Section title="Le sujet du jour" className="mt-4">
-          <Link to={`/article/${sujet.slug}`} className="group relative block overflow-hidden rounded-3xl bg-gradient-to-br from-brand-deep to-brand p-6 text-white shadow-card">
-            <div className="pattern-islamic absolute inset-0" aria-hidden="true" />
-            <div className="relative">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-[.18em] text-emerald-100">{categories.find((c) => c.id === sujet.cat)?.titre}</p>
-              <h3 className="font-display text-2xl font-bold">{sujet.titre}</h3>
-              <p className="mt-2 text-emerald-50/90">{sujet.accroche}</p>
-              <span className="mt-5 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-brand-deep">Lire l'article <ArrowRight size={16} className="transition group-hover:translate-x-0.5" /></span>
-            </div>
-          </Link>
-        </Section>
+        {!prefs.sobre && <div className="mt-5"><DailyGoal stats={stats} /></div>}
 
-        {/* CONSEILS */}
-        <Section title="Conseils quotidiens">
-          <div className="grid gap-3 sm:grid-cols-2"><ReminderCard /><ReminderCard offset={7} /></div>
-          <Link to="/bilan" className="card mt-3 flex items-center gap-3 p-4 hover:shadow-lg">
-            <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-deep text-white"><CalendarCheck size={21} /></span>
-            <span className="flex-1"><span className="block font-semibold text-slate-900">Fais le bilan de ta journée</span><span className="text-sm text-slate-500">7 questions pour avancer, sans culpabiliser</span></span>
-            <ChevronRight size={18} className="text-slate-400" />
-          </Link>
-        </Section>
+        {/* ACCÈS RAPIDE */}
+        <div className="mt-4 grid grid-cols-4 gap-2">
+          {[['/parcours', 'Parcours', Sparkles], ['/programme', '30 jours', CalendarCheck], ['/suivi', 'Mon suivi', Activity], ['/recompenses', 'Badges', Trophy]].map(([to, l, I]) => (
+            <Link key={to} to={to} className="tap card flex flex-col items-center gap-1.5 p-3 text-center"><span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-light text-brand-deep"><I size={20} /></span><span className="text-[12px] font-semibold leading-tight text-slate-700">{l}</span></Link>
+          ))}
+        </div>
 
-        {/* POPULAIRES */}
-        <Section title="Les dangers les plus consultés" action={<Link to="/peches" className="text-sm font-semibold text-brand">Tout voir</Link>}>
-          <div className="grid gap-3 sm:grid-cols-2">{populaires.map((a) => <ArticleCard key={a.slug} article={a} variant="tile" />)}</div>
-        </Section>
-
-        {/* 6 ÉTAPES */}
-        <Section title="Les six grandes étapes de transformation">
-          <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {PHASES.map((ph) => (
-              <li key={ph.id} className="card flex gap-3 p-4">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-light font-bold text-brand-deep">{ph.id}</span>
-                <span><span className="block font-semibold text-slate-900">{ph.titre}</span><span className="text-sm text-slate-600">Jours {ph.jours[0]} à {ph.jours[1]} — {ph.texte}</span></span>
-              </li>
+        {/* CATÉGORIES */}
+        <Section title="Explorer par catégorie" action={<Link to="/decouvrir" className="text-sm font-semibold text-brand">Tout voir</Link>}>
+          <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2">
+            {categories.map((c) => (
+              <Link key={c.id} to={`/peches/${c.id}`} className={`tap relative flex w-36 shrink-0 snap-start flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br ${c.couleur} p-4 text-white shadow-card`} style={{ minHeight: 120 }}>
+                <span className="pattern-islamic absolute inset-0" aria-hidden="true" />
+                <Icon name={c.icon} size={22} className="relative" />
+                <span className="relative font-semibold leading-snug">{c.titre}</span>
+              </Link>
             ))}
-          </ol>
-          <Link to="/programme" className="btn-primary mt-4 w-full sm:w-auto">Commencer le programme de 30 jours <ArrowRight size={18} /></Link>
-        </Section>
-
-        {/* HADITH DU JOUR */}
-        <Section title="Le hadith du jour"><HadithCard id={hadith} /></Section>
-
-        {/* DERNIERS ARTICLES */}
-        <Section title="Derniers articles">
-          <div className="space-y-2.5">{recents.map((a) => <ArticleCard key={a.slug} article={a} />)}</div>
-        </Section>
-
-        {/* EXPLORER */}
-        <Section title="Explorer ANDOU DIINEMA">
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            {SECTIONS.map((s) => (
-              <Link key={s.to} to={s.to} className="card flex flex-col gap-2 p-4 transition hover:-translate-y-0.5 hover:shadow-lg">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-light text-brand-deep"><Icon name={s.icon} size={20} /></span>
+            {SECTIONS.slice(1, 7).map((s) => (
+              <Link key={s.to} to={s.to} className="tap card flex w-36 shrink-0 snap-start flex-col justify-between p-4" style={{ minHeight: 120 }}>
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand-light text-brand-deep"><Icon name={s.icon} size={18} /></span>
                 <span className="font-semibold leading-snug text-slate-900">{s.titre}</span>
-                <span className="text-xs text-slate-500">{s.texte}</span>
               </Link>
             ))}
           </div>
         </Section>
+
+        <Section title="Conseil du jour">
+          <ReminderCard />
+          <Link to="/bilan" className="tap card mt-3 flex items-center gap-3 p-4">
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-deep text-white"><CalendarCheck size={21} /></span>
+            <span className="flex-1"><span className="block font-semibold text-slate-900">Fais le bilan de ta journée</span><span className="text-sm text-slate-500">+10 XP · 7 questions, sans culpabiliser</span></span>
+            <ChevronRight size={18} className="text-slate-400" />
+          </Link>
+        </Section>
+
+        <Section title="Le sujet du jour">
+          <Link to={`/article/${sujet.slug}`} className="tap group relative block overflow-hidden rounded-3xl bg-gradient-to-br from-brand-deep to-brand p-5 text-white shadow-card">
+            <div className="pattern-islamic absolute inset-0" aria-hidden="true" />
+            <div className="relative">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-[.16em] text-emerald-100">{categories.find((c) => c.id === sujet.cat)?.titre}</p>
+              <h3 className="font-display text-xl font-bold text-white">{sujet.titre}</h3>
+              <p className="mt-1 text-sm text-emerald-50/90">{sujet.accroche}</p>
+              <span className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-brand-deep">Lire <ArrowRight size={16} /></span>
+            </div>
+          </Link>
+        </Section>
+
+        <Section title="Les dangers les plus consultés" action={<Link to="/peches" className="text-sm font-semibold text-brand">Bibliothèque</Link>}>
+          <div className="grid gap-3 sm:grid-cols-2">{populaires.map((a) => <ArticleCard key={a.slug} article={a} variant="tile" />)}</div>
+        </Section>
+
+        <Section title="Le hadith du jour"><HadithCard id={HADITH_JOUR[dayOfYear() % HADITH_JOUR.length]} /></Section>
       </div>
     </>
   )

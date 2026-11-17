@@ -224,7 +224,7 @@ create table if not exists public.ad_notifications (
 create table if not exists public.ad_user_progress (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid not null references auth.users (id) on delete cascade default auth.uid(),
-  kind       text not null check (kind in ('programme', 'prayer', 'dhikr', 'goal')),
+  kind       text not null check (kind in ('programme', 'prayer', 'dhikr', 'goal', 'lesson')),
   ref        text not null check (char_length(ref) <= 80),
   day        date not null default current_date,
   value      int not null default 1 check (value >= 0 and value <= 100000),

@@ -7,6 +7,16 @@ React 18 · Vite · Tailwind CSS · React Router · Lucide · Supabase (PostgreS
 
 ---
 
+## Parcours interactif (inspiré des applications d'apprentissage gamifiées)
+
+- **Chemin vertical** `/parcours` : 10 chapitres × 3 étapes, nœuds en zigzag, étapes faites / courante (anneau animé) / verrouillées, coffre de fin de chapitre. Le chapitre 7 (repentir) est **toujours ouvert**.
+- **Étape** `/parcours/etape/:id` (plein écran) : leçon → verset → hadith → quiz → réflexion privée → mission → invocation → bilan → « Terminer cette étape ».
+- **Progression** : XP, 10 niveaux, série de jours, objectif du jour réglable, « lumière du jour » (énergie qui ne fait que se remplir), 25 badges, historique, célébrations (confettis, déblocage animé). `/recompenses`.
+- **Principes** : on ne perd jamais rien ; aucune pénalité pour une erreur ou une journée manquée ; le repentir et les enseignements ne sont jamais bloqués ; **mode sobre** (Profil) pour masquer XP et séries.
+- L'ancien tableau de bord est devenu **Mon suivi** (`/suivi`) : prières, dhikr, objectifs, missions, bilans.
+- Contenu : `src/content/parcours.js` · moteur : `src/services/gamification.js`.
+- **Base déjà installée avant cette version ?** Exécuter `supabase/migrations/002_parcours.sql` (ajoute le type `lesson`).
+
 ## Contenu du site
 
 | Rubrique | Route | Contenu |

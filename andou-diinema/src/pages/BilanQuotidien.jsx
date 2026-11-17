@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Lock, Check, X, Minus } from 'lucide-react'
 import Seo from '../components/Seo'
@@ -48,8 +48,11 @@ export default function BilanQuotidien() {
   const [err, setErr] = useState(null)
   const [busy, setBusy] = useState(false)
 
+  // Le bilan enregistré n'est chargé qu'une fois : un rechargement des données
+  // ne doit jamais écraser des réponses que l'utilisateur est en train de modifier.
+  const loaded = useRef(false)
   useEffect(() => {
-    if (existing) { setAnswers(existing.answers || {}); setNote(existing.note || ''); setResult(message(existing.answers || {})) }
+    if (existing && !loaded.current) { loaded.current = true; setAnswers(existing.answers || {}); setNote(existing.note || ''); setResult(message(existing.answers || {})) }
   }, [existing])
 
   const set = (id, v) => setAnswers((a) => ({ ...a, [id]: v }))
@@ -108,7 +111,7 @@ export default function BilanQuotidien() {
           <section className="mt-8">
             <h2 className="mb-3 text-lg font-bold">Mes derniers bilans</h2>
             <ul className="space-y-2">{history.map((h) => <li key={h.day} className="card flex items-center justify-between p-3.5"><span className="text-sm capitalize text-slate-700">{formatDay(h.day)}</span><span className="badge bg-brand-light text-brand-deep">{h.score ?? '–'} / 6</span></li>)}</ul>
-            <Link to="/parcours" className="mt-3 inline-flex min-h-[44px] items-center text-sm font-semibold text-brand">Voir mon parcours complet →</Link>
+            <Link to="/suivi" className="mt-3 inline-flex min-h-[44px] items-center text-sm font-semibold text-brand">Voir mon suivi complet →</Link>
           </section>
         )}
       </div>

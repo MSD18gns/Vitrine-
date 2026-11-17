@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { LogOut, Bell, Trash2, ShieldCheck, UserRound, Download, Smartphone, LogIn } from 'lucide-react'
+import { LogOut, Bell, Trash2, ShieldCheck, UserRound, Download, Smartphone, LogIn, Trophy, Activity, EyeOff, ChevronRight } from 'lucide-react'
 import Seo from '../components/Seo'
 import { PageHeader, Alert, Section } from '../components/ui'
 import { useAuth } from '../hooks/useAuth'
@@ -8,7 +8,21 @@ import { useProgress } from '../hooks/useProgress'
 import { signOut, updateProfile, deleteAccount } from '../services/auth'
 import { DEFAULT_PREFS, askPermission, permission, testNotification, notificationsSupported } from '../services/notifications'
 
-const LABELS = { programme: 'Mission du programme', dhikr: 'Moment de dhikr', bilan: 'Bilan du soir' }
+const LABELS = { programme: 'Prochaine étape du parcours', dhikr: 'Moment de dhikr', bilan: 'Bilan du soir' }
+
+function ModeSobre() {
+  const { api, bump } = useProgress()
+  const [sobre, setSobre] = useState(false)
+  useEffect(() => { api.gamePrefs().then((p) => setSobre(p.sobre)) }, [api])
+  const toggle = async () => { const v = !sobre; setSobre(v); await api.setGamePrefs({ sobre: v }); bump() }
+  return (
+    <label className="card flex cursor-pointer items-center gap-3 p-4">
+      <EyeOff size={20} className="shrink-0 text-brand" />
+      <span className="flex-1"><span className="block font-semibold text-slate-900">Mode sobre</span><span className="text-sm text-slate-500">Masquer XP, niveaux et séries. Le parcours reste identique.</span></span>
+      <input type="checkbox" checked={sobre} onChange={toggle} className="h-6 w-6 accent-brand-deep" />
+    </label>
+  )
+}
 
 function Reminders() {
   const { api } = useProgress()
@@ -92,6 +106,13 @@ export default function Profil() {
             {isStaff && <Link to="/admin" className="card mt-3 flex items-center gap-3 p-4 hover:shadow-lg"><ShieldCheck className="text-brand" /><span className="flex-1 font-semibold">Administration</span><span className="badge bg-brand-light text-brand-deep">{roles.join(', ')}</span></Link>}
           </Section>
         )}
+
+        <Section title="Ma progression">
+          <div className="grid gap-2">
+            {[['/recompenses', 'Mes récompenses', 'Niveau, badges, historique', Trophy], ['/suivi', 'Mon suivi', 'Prières, dhikr, objectifs, bilans', Activity]].map(([to, t, d, I]) => <Link key={to} to={to} className="tap card flex items-center gap-3 p-4"><span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-light text-brand-deep"><I size={20} /></span><span className="flex-1"><span className="block font-semibold text-slate-900">{t}</span><span className="text-sm text-slate-500">{d}</span></span><ChevronRight size={18} className="text-slate-400" /></Link>)}
+            <ModeSobre />
+          </div>
+        </Section>
 
         <Section title={<span className="flex items-center gap-2"><Bell size={22} />Rappels</span>}><Reminders /></Section>
 

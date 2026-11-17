@@ -49,8 +49,8 @@ export const DEFAULT_PREFS = {
 }
 const MESSAGES = {
   bilan: ['Fais le bilan de ta journée', 'Quelques minutes pour te rapprocher d\'Allah avant de dormir.', '/bilan'],
-  programme: ['Ta mission du jour t\'attend', 'Continue ton programme de transformation.', '/programme'],
-  dhikr: ['Un moment pour le dhikr', '« N\'est-ce pas par l\'évocation d\'Allah que les cœurs se tranquillisent ? »', '/parcours'],
+  programme: ['Ta prochaine étape t\'attend', 'Continue ton parcours, une étape à la fois.', '/parcours'],
+  dhikr: ['Un moment pour le dhikr', '« N\'est-ce pas par l\'évocation d\'Allah que les cœurs se tranquillisent ? »', '/suivi'],
 }
 
 export function checkReminders(prefs) {

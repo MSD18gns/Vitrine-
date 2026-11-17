@@ -1,0 +1,4 @@
+import { Eye, HeartPulse, Search, ShieldOff, Smartphone, Timer, Hourglass, ThumbsUp, Users, HeartCrack, Sparkles, Wind, CalendarClock, Sunrise, Crown, Flame, MessageCircleOff, DoorOpen, RefreshCw, LifeBuoy, Landmark, Sparkle, BookOpen, HandHeart, BadgeCheck, Gift, Repeat, Sun, Mountain, Star, Footprints, Compass, Award, Target, PenLine, CalendarCheck, Gem } from 'lucide-react'
+
+export const STEP_ICONS = { Eye, HeartPulse, Search, ShieldOff, Smartphone, Timer, Hourglass, ThumbsUp, Users, HeartCrack, Sparkles, Wind, CalendarClock, Sunrise, Crown, Flame, MessageCircleOff, DoorOpen, RefreshCw, LifeBuoy, Landmark, Sparkle, BookOpen, HandHeart, BadgeCheck, Gift, Repeat, Sun, Mountain, Star, Footprints, Compass, Award, Target, PenLine, CalendarCheck, Gem }
+export const iconFor = (name) => STEP_ICONS[name] || Star

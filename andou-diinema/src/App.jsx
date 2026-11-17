@@ -34,6 +34,9 @@ const BilanQuotidien = p(() => import('./pages/BilanQuotidien'))
 const Hadiths = p(() => import('./pages/Hadiths'))
 const Invocations = p(() => import('./pages/Invocations'))
 const Dashboard = p(() => import('./pages/Dashboard'))
+const Parcours = p(() => import('./pages/Parcours'))
+const Etape = p(() => import('./pages/Etape'))
+const Recompenses = p(() => import('./pages/Recompenses'))
 const Favoris = p(() => import('./pages/Favoris'))
 const Profil = p(() => import('./pages/Profil'))
 const Login = p(() => import('./pages/Login'))
@@ -75,7 +78,7 @@ function Reminders() {
 export default function App() {
   const { pathname } = useLocation()
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col overflow-x-clip">
       <a href="#contenu" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:rounded-xl focus:bg-white focus:p-3">Aller au contenu</a>
       <ScrollTop />
       <Reminders />
@@ -101,7 +104,10 @@ export default function App() {
               <Route path="/bilan" element={<BilanQuotidien />} />
               <Route path="/hadiths" element={<Hadiths />} />
               <Route path="/invocations" element={<Invocations />} />
-              <Route path="/parcours" element={<Dashboard />} />
+              <Route path="/parcours" element={<Parcours />} />
+              <Route path="/parcours/etape/:id" element={<Etape />} />
+              <Route path="/suivi" element={<Dashboard />} />
+              <Route path="/recompenses" element={<Recompenses />} />
               <Route path="/favoris" element={<Favoris />} />
               <Route path="/profil" element={<Profil />} />
               <Route path="/connexion" element={<Login />} />
@@ -120,7 +126,7 @@ export default function App() {
           </Suspense>
         </ErrorBoundary>
       </main>
-      <Footer />
+      {!pathname.startsWith('/parcours') && <Footer />}
       <MobileNavigation />
     </div>
   )

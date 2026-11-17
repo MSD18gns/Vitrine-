@@ -1,15 +1,18 @@
 import { NavLink } from 'react-router-dom'
 import { Home, Compass, Route, Bookmark, UserRound } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 
 const ITEMS = [
   { to: '/', label: 'Accueil', Icon: Home, end: true },
+  { to: '/parcours', label: 'Parcours', Icon: Route },
   { to: '/decouvrir', label: 'Découvrir', Icon: Compass },
-  { to: '/parcours', label: 'Mon parcours', Icon: Route },
   { to: '/favoris', label: 'Favoris', Icon: Bookmark },
   { to: '/profil', label: 'Profil', Icon: UserRound },
 ]
 
 export default function MobileNavigation() {
+  const { pathname } = useLocation()
+  if (pathname.startsWith('/parcours/etape/')) return null // mode immersif pendant une étape
   return (
     <nav aria-label="Navigation mobile" className="fixed inset-x-0 bottom-0 z-50 border-t border-brand-deep/10 bg-white/95 backdrop-blur lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <ul className="mx-auto grid max-w-lg grid-cols-5">

@@ -157,6 +157,22 @@ export const api = (driver) => ({
     await driver.setMeta({ programme_cycle: (meta.programme_cycle || 1) + 1, programme_started_at: dayKey() })
   },
 
+  // Parcours (étapes) ---------------------------------------------
+  async lessons() { return driver.listProgress('lesson') },
+  async completeLesson(id, { parfait = false, reflexion = '', ressenti = '' } = {}) {
+    const data = { parfait: !!parfait }
+    if (reflexion) data.reflexion = String(reflexion).slice(0, 600)
+    if (ressenti) data.ressenti = ressenti
+    await driver.upsertProgress({ kind: 'lesson', ref: id, day: dayKey(), value: 1, data })
+  },
+
+  // Préférences de progression (objectif du jour, mode sobre) ------
+  async gamePrefs() { const p = (await driver.getMeta()).reminder_prefs || {}; return { objectif: p.objectif_xp || 30, sobre: !!p.mode_sobre } },
+  async setGamePrefs({ objectif, sobre }) {
+    const p = (await driver.getMeta()).reminder_prefs || {}
+    await driver.setMeta({ reminder_prefs: { ...p, ...(objectif ? { objectif_xp: objectif } : {}), ...(sobre !== undefined ? { mode_sobre: !!sobre } : {}) } })
+  },
+
   // Prières --------------------------------------------------------
   async prayers(from, to) { return driver.listProgress('prayer', { from, to }) },
   async setPrayer(day, id, isDone) {
@@ -195,5 +211,5 @@ export const api = (driver) => ({
 
   // Rappels --------------------------------------------------------
   async reminderPrefs() { return (await driver.getMeta()).reminder_prefs || {} },
-  async setReminderPrefs(prefs) { await driver.setMeta({ reminder_prefs: prefs }) },
+  async setReminderPrefs(prefs) { const old = (await driver.getMeta()).reminder_prefs || {}; await driver.setMeta({ reminder_prefs: { ...old, ...prefs } }) },
 })

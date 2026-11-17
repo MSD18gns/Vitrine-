@@ -6,9 +6,10 @@ import { useAnnouncements } from './Announcements'
 
 const DESKTOP = [
   ['/', 'Accueil'],
+  ['/parcours', 'Parcours'],
   ['/decouvrir', 'Découvrir'],
-  ['/programme', 'Programme 30 jours'],
-  ['/parcours', 'Mon parcours'],
+  ['/programme', '30 jours'],
+  ['/suivi', 'Mon suivi'],
   ['/favoris', 'Favoris'],
 ]
 
