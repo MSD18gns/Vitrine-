@@ -53,9 +53,9 @@ Réglages d'identité (jamais modifiés par une tenue) : `PHENOTYPE`, `SKIN_GAMM
 | Élément | Fichier |
 |---|---|
 | Modèle source (script procédural) | `mahmoud/blender/build_mahmoud.py` |
-| Modèle source Blender | `mahmoud/dist/mahmoud_emeraude.blend` |
+| Modèle source Blender v1 | `mahmoud/source/mahmoud_v1_emeraude.blend` |
 | Modèle optimisé v2 (par défaut) | `public/mahmoud/mahmoud_v2.glb` — 1,39 Mo |
-| Script v2 (MPFB2) + source Blender | `mahmoud/mpfb/build_mahmoud_mpfb.py`, `mahmoud/dist/mahmoud_v2_emeraude.blend` |
+| Script v2 (MPFB2) + source Blender | `mahmoud/mpfb/build_mahmoud_mpfb.py`, `mahmoud/source/mahmoud_v2_emeraude.blend` |
 | Modèle optimisé v1 (comparaison) | `public/mahmoud/mahmoud.glb` — 451 Ko (meshopt) |
 | Portrait 2D de secours | `public/mahmoud/mahmoud-portrait.png` |
 | Composant 3D (R3F) | `src/mahmoud/Mahmoud3D.jsx` (chargé à la demande) |
