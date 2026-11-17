@@ -6,6 +6,7 @@ import Seo from '../components/Seo'
 import Mahmoud, { useMahmoud } from '../mahmoud'
 import MahmoudCompanion from '../mahmoud/MahmoudCompanion'
 import { EXPRESSIONS } from '../mahmoud/behavior'
+import { MODELES } from '../mahmoud/outfits'
 import { createListener, speechSupport } from '../mahmoud/speech'
 import { localReply, SUGGESTIONS } from '../mahmoud/replies'
 
@@ -26,6 +27,7 @@ export default function LaboMahmoud() {
   const [voice, setVoice] = useState(false)
   const [calm, setCalm] = useState(false)
   const [framing, setFraming] = useState('buste')
+  const [modele, setModele] = useState('v2')
   const [status, setStatus] = useState({})
   const [chat, setChat] = useState([])
   const [input, setInput] = useState('')
@@ -83,11 +85,16 @@ export default function LaboMahmoud() {
           {/* SCÈNE */}
           <section>
             <div className="relative h-[460px] overflow-hidden rounded-[28px] bg-gradient-to-b from-brand-mist via-white to-brand-light shadow-card ring-1 ring-brand/10">
-              <Mahmoud controller={m} framing={framing} className="h-full w-full" onStatus={setStatus} />
+              <Mahmoud controller={m} src={MODELES[modele].glb} portrait={MODELES[modele].portrait} framing={framing} className="h-full w-full" onStatus={setStatus} />
               {m.caption && <div className="absolute inset-x-3 bottom-3 rounded-2xl bg-white/95 p-3 text-[15px] text-slate-800 shadow-lg" aria-live="polite">{m.caption}</div>}
               {calm && <span className="absolute left-3 top-3 rounded-full bg-brand-deep px-3 py-1 text-xs font-bold text-white">🕊️ Mode calme</span>}
             </div>
-            <div className="mt-3 flex flex-wrap gap-2 text-sm">
+            <div className="mt-3 flex flex-wrap gap-2 text-sm" role="group" aria-label="Modèle">
+              {Object.entries(MODELES).map(([k, v]) => (
+                <button key={k} type="button" onClick={() => setModele(k)} className={`rounded-full px-3 py-1.5 font-semibold ring-1 ${modele === k ? 'bg-brand-deep text-white ring-brand-deep' : 'bg-white text-slate-700 ring-slate-200'}`}>{v.label}</button>
+              ))}
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2 text-sm">
               {[['buste', 'Buste'], ['visage', 'Visage'], ['pied', 'En pied']].map(([k, l]) => (
                 <button key={k} type="button" onClick={() => setFraming(k)} className={`rounded-full px-3 py-1.5 font-semibold ring-1 ${framing === k ? 'bg-brand text-white ring-brand' : 'bg-white text-slate-700 ring-slate-200'}`}>{l}</button>
               ))}

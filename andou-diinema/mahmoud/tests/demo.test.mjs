@@ -48,6 +48,13 @@ const b = await chromium.launch()
   await p.getByRole('button', { name: 'Parler au micro' }).click(); await p.waitForTimeout(2500)
   const micMsg = await p.locator('[role=alert]').allInnerTexts()
   ok('Micro : démarrage sans plantage (pas de micro dans le conteneur : reconnaissance réelle non testable ici)', errors.length === 0, micMsg.join(' '))
+  // comparaison : bascule vers le prototype v1 puis retour au v2
+  await p.getByRole('button', { name: 'Buste' }).click()
+  await p.getByRole('button', { name: /v1 — prototype/ }).click(); await p.waitForTimeout(4000)
+  await p.locator('section').first().screenshot({ path: `${OUT}/demo-v1.png` })
+  await p.getByRole('button', { name: /v2 — base MPFB2/ }).click(); await p.waitForTimeout(4000)
+  await p.locator('section').first().screenshot({ path: `${OUT}/demo-v2.png` })
+  ok('Bascule de modèle v2 → v1 → v2 sans erreur', errors.length === 0, errors.join(' | '))
   ok('Aucune erreur console (bureau)', errors.length === 0, errors.join(' | '))
   await ctx.close()
 }

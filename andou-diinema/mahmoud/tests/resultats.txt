@@ -1,4 +1,4 @@
-OK   3D chargée  3.0 s (SwiftShader, sans GPU)
+OK   3D chargée  3.7 s (SwiftShader, sans GPU)
 OK   robots noindex  
 OK   Accueil automatique (phrase)  
 OK   Geste + expression combinés sans erreur  
@@ -6,6 +6,7 @@ OK   Réponse locale « qui es-tu »
 OK   Question hors sujet → aveu honnête  
 OK   Mode calme affiché  
 OK   Micro : démarrage sans plantage (pas de micro dans le conteneur : reconnaissance réelle non testable ici)  
+OK   Bascule de modèle v2 → v1 → v2 sans erreur  
 OK   Aucune erreur console (bureau)  
 OK   Mobile : pas de débordement horizontal  390px
 OK   Rendu actif à l'écran  
@@ -18,4 +19,4 @@ OK   Sans WebGL : 3D non téléchargée
 OK   Sans WebGL : statut correct  
 OK   Pages existantes : aucune ressource Mahmoud chargée  
 
-19/19 réussis
+20/20 réussis

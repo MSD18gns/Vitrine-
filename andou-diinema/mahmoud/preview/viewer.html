@@ -20,8 +20,9 @@ s.add(new THREE.HemisphereLight(0xffffff, 0x2a4a3a, 0.6))
 const cam = new THREE.PerspectiveCamera(+q.get('fov') || 30, W / H, 0.05, 50)
 const view = q.get('view') || 'full'
 const az = (+q.get('az') || 0) * Math.PI / 180
-const tgt = view === 'face' ? new THREE.Vector3(0, 1.53, 0) : view === 'bust' ? new THREE.Vector3(0, 1.35, 0) : new THREE.Vector3(0, 0.88, 0)
-const dist = view === 'face' ? 0.75 : view === 'bust' ? 1.6 : 4.2
+const HZ = +q.get('hz') || 1.53
+const tgt = view === 'face' ? new THREE.Vector3(0, HZ, 0) : view === 'bust' ? new THREE.Vector3(0, HZ - 0.18, 0) : new THREE.Vector3(0, HZ * 0.575, 0)
+const dist = (view === 'face' ? 0.75 : view === 'bust' ? 1.6 : 4.2) * (+q.get('zoom') || 1)
 cam.position.set(Math.sin(az) * dist, tgt.y + (view === 'full' ? 0.15 : 0.02), Math.cos(az) * dist); cam.lookAt(tgt)
 new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(q.get('src') || '/mahmoud/dist/mahmoud_raw.glb', (g) => {
   s.add(g.scene)

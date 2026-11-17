@@ -2,7 +2,7 @@
 // Couches indépendantes :
 //   corps   : boucle de fond (Idle / Talk / Listen / Think) + gestes ponctuels en fondu
 //   visage  : expression (lissée) + visèmes de parole + clignements + micro-mouvements des yeux
-import { Suspense, useEffect, useMemo, useRef } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
@@ -25,7 +25,7 @@ function Env() {
   return null
 }
 
-function Character({ url, behavior, live, reducedMotion, onReady }) {
+function Character({ url, behavior, live, reducedMotion, onReady, onEyes }) {
   const { scene, animations } = useGLTF(url, false, true)
   const root = useMemo(() => cloneSkinned(scene), [scene])
   const state = useRef({ expr: {}, cur: {}, blinkT: 2, blink: 0, gazeT: 1, gaze: [0, 0], gazeCur: [0, 0] })
@@ -37,7 +37,7 @@ function Character({ url, behavior, live, reducedMotion, onReady }) {
     root.traverse((o) => {
       if (o.isMesh) { o.frustumCulled = false; if (o.morphTargetDictionary) morphs.push(o) }
     })
-    const eyes = ['eye.L', 'eye.R', 'eyeL', 'eyeR'].map((n) => root.getObjectByName(n)).filter(Boolean)
+    const eyes = ['eye.L', 'eye.R', 'eyeL', 'eyeR', 'eye_l', 'eye_r'].map((n) => root.getObjectByName(n)).filter(Boolean)
     return { mixer, actions, morphs, eyes, eyeRest: eyes.map((e) => e.quaternion.clone()) }
   }, [root, animations])
 
@@ -70,9 +70,14 @@ function Character({ url, behavior, live, reducedMotion, onReady }) {
       if (r.loop) setLoop(r.loop)
       if (r.gesture) play(r.gesture)
     })
+    // hauteur des yeux → cadrage automatique (v1 et v2 n'ont pas la même taille)
+    root.updateMatrixWorld(true)
+    const v = new THREE.Vector3(); let ez = 0
+    rig.eyes.forEach((e) => { e.getWorldPosition(v); ez += v.y / rig.eyes.length })
+    onEyes?.(ez || 1.52)
     onReady?.()
     return () => { unsub(); mixer.removeEventListener('finished', onFinished); mixer.stopAllAction() }
-  }, [rig, behavior, reducedMotion, onReady])
+  }, [rig, root, behavior, reducedMotion, onReady, onEyes])
 
   useFrame((_, dtRaw) => {
     const dt = Math.min(dtRaw, 0.1)
@@ -118,43 +123,45 @@ function Character({ url, behavior, live, reducedMotion, onReady }) {
   return <primitive object={root} />
 }
 
+// cadrages exprimés par rapport à la hauteur des yeux (ez)
 const FRAMING = {
-  buste: { target: [0, 1.42, 0], pos: [0, 1.47, 1.55], fov: 26 },
-  visage: { target: [0, 1.53, 0], pos: [0, 1.55, 0.8], fov: 28 },
-  pied: { target: [0, 0.9, 0], pos: [0, 1.05, 4.3], fov: 28 },
+  buste: (ez) => ({ target: [0, ez - 0.12, 0], pos: [0, ez - 0.06, 1.55 * ez / 1.52], fov: 26 }),
+  visage: (ez) => ({ target: [0, ez - 0.02, 0], pos: [0, ez, 0.78 * ez / 1.52], fov: 28 }),
+  pied: (ez) => ({ target: [0, ez * 0.56, 0], pos: [0, ez * 0.66, 4.3 * ez / 1.52], fov: 28 }),
 }
 
-function Camera({ framing }) {
+function Camera({ framing, ez }) {
   const { camera } = useThree()
   useEffect(() => {
-    const f = FRAMING[framing] || FRAMING.buste
+    const f = (FRAMING[framing] || FRAMING.buste)(ez)
     camera.position.set(...f.pos); camera.fov = f.fov; camera.lookAt(...f.target); camera.updateProjectionMatrix()
-  }, [camera, framing])
+  }, [camera, framing, ez])
   return null
 }
 
-export default function Mahmoud3D({ outfitId, behavior, live, active = true, framing = 'buste', reducedMotion = false, onReady }) {
-  const url = outfit(outfitId).glb
+export default function Mahmoud3D({ outfitId, src, behavior, live, active = true, framing = 'buste', reducedMotion = false, onReady }) {
+  const url = src || outfit(outfitId).glb
+  const [ez, setEz] = useState(1.52)
   return (
     <Canvas
       frameloop={active ? 'always' : 'never'}
       dpr={[1, 1.75]}
       gl={{ antialias: true, alpha: true, powerPreference: 'low-power' }}
-      camera={{ position: FRAMING.buste.pos, fov: 26, near: 0.05, far: 30 }}
+      camera={{ position: [0, 1.46, 1.55], fov: 26, near: 0.05, far: 30 }}
       onCreated={({ gl }) => { gl.toneMapping = THREE.ACESFilmicToneMapping; gl.toneMappingExposure = 1.05 }}
       style={{ touchAction: 'pan-y' }}
       aria-hidden="true"
     >
-      <Camera framing={framing} />
+      <Camera framing={framing} ez={ez} />
       <Env />
       <directionalLight position={[-1.5, 2.5, 3]} intensity={2.2} color="#fff4e6" />
       <directionalLight position={[2, 2, -2]} intensity={1.2} color="#bfffe0" />
       <hemisphereLight args={['#ffffff', '#2a4a3a', 0.6]} />
       <Suspense fallback={null}>
-        <Character url={url} behavior={behavior} live={live} reducedMotion={reducedMotion} onReady={onReady} />
+        <Character key={url} url={url} behavior={behavior} live={live} reducedMotion={reducedMotion} onReady={onReady} onEyes={setEz} />
       </Suspense>
     </Canvas>
   )
 }
 
-export const preloadMahmoud = (outfitId) => useGLTF.preload(outfit(outfitId).glb, false, true)
+export const preloadMahmoud = (outfitId, src) => useGLTF.preload(src || outfit(outfitId).glb, false, true)

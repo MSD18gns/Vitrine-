@@ -50,8 +50,8 @@ class GLBoundary extends Component {
   render() { return this.state.failed ? this.props.fallback : this.props.children }
 }
 
-export function MahmoudPortrait({ outfitId = DEFAULT_OUTFIT, className = '' }) {
-  return <img src={outfit(outfitId).portrait} alt="Mahmoud, compagnon d'ANDOU DIINEMA" className={`h-full w-full object-contain object-bottom ${className}`} draggable="false" />
+export function MahmoudPortrait({ outfitId = DEFAULT_OUTFIT, portrait, className = '' }) {
+  return <img src={portrait || outfit(outfitId).portrait} alt="Mahmoud, compagnon d'ANDOU DIINEMA" className={`h-full w-full object-contain object-bottom ${className}`} draggable="false" />
 }
 
 /**
@@ -59,7 +59,7 @@ export function MahmoudPortrait({ outfitId = DEFAULT_OUTFIT, className = '' }) {
  * Pause automatique hors écran et quand l'onglet est masqué. Portrait 2D si WebGL absent
  * ou en cas d'erreur de chargement.
  */
-export default function Mahmoud({ controller, outfitId = DEFAULT_OUTFIT, framing = 'buste', className = '', forceFallback = false, onStatus }) {
+export default function Mahmoud({ controller, outfitId = DEFAULT_OUTFIT, src, portrait: portraitSrc, framing = 'buste', className = '', forceFallback = false, onStatus }) {
   const box = useRef(null)
   const [visible, setVisible] = useState(false)
   const [pageVisible, setPageVisible] = useState(() => typeof document === 'undefined' || !document.hidden)
@@ -80,7 +80,7 @@ export default function Mahmoud({ controller, outfitId = DEFAULT_OUTFIT, framing
   useEffect(() => { onStatus?.({ webgl, ready, active: visible && pageVisible }) }, [webgl, ready, visible, pageVisible, onStatus])
   const onReady = useCallback(() => setReady(true), [])
 
-  const portrait = <MahmoudPortrait outfitId={outfitId} />
+  const portrait = <MahmoudPortrait outfitId={outfitId} portrait={portraitSrc} />
   return (
     <div ref={box} className={`relative ${className}`}>
       {(!webgl || !ready) && <div className={`absolute inset-0 transition-opacity duration-500 ${ready ? 'opacity-0' : 'opacity-100'}`}>{portrait}</div>}
@@ -88,7 +88,7 @@ export default function Mahmoud({ controller, outfitId = DEFAULT_OUTFIT, framing
         <GLBoundary fallback={portrait} onError={() => onStatus?.({ webgl: false, error: true })}>
           <Suspense fallback={null}>
             <div className={`absolute inset-0 transition-opacity duration-500 ${ready ? 'opacity-100' : 'opacity-0'}`}>
-              <Mahmoud3D outfitId={outfitId} behavior={controller.behavior} live={controller.live} active={visible && pageVisible} framing={framing} reducedMotion={reduced} onReady={onReady} />
+              <Mahmoud3D outfitId={outfitId} src={src} behavior={controller.behavior} live={controller.live} active={visible && pageVisible} framing={framing} reducedMotion={reduced} onReady={onReady} />
             </div>
           </Suspense>
         </GLBoundary>
