@@ -1,0 +1,19 @@
+{
+  "name": "ANDOU DIINEMA",
+  "short_name": "Andou Diinema",
+  "description": "Ouvre les yeux, purifie ton cœur et rapproche-toi d'Allah.",
+  "lang": "fr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F7FAF8",
+  "theme_color": "#075B40",
+  "categories": ["education", "lifestyle"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/logo.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

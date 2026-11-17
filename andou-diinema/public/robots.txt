@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /profil
+Disallow: /parcours
+Disallow: /bilan
+Disallow: /favoris
+Disallow: /connexion
+Disallow: /inscription
+
+Sitemap: https://andou-diinema.vercel.app/sitemap.xml

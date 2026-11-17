@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; scroll-padding-top: 72px; }
+  body { @apply bg-brand-mist text-slate-800 font-sans antialiased; text-rendering: optimizeLegibility; overflow-x: hidden; }
+  h1, h2, h3 { @apply text-brand-deep; }
+  ::selection { @apply bg-brand-light text-brand-deep; }
+  :focus-visible { @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-white; }
+  input, textarea, select { @apply text-base; }
+}
+
+@layer components {
+  .container-ad { @apply mx-auto w-full max-w-5xl px-4 sm:px-6; }
+  .card { @apply rounded-2xl bg-white shadow-card ring-1 ring-brand-deep/5; }
+  .btn { @apply inline-flex min-h-[48px] items-center justify-center gap-2 rounded-2xl px-5 font-semibold transition active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-60; }
+  .btn-primary { @apply btn bg-brand-deep text-white shadow-sm hover:bg-brand; }
+  .btn-secondary { @apply btn bg-brand-light text-brand-deep hover:bg-emerald-100; }
+  .btn-ghost { @apply btn bg-white text-brand-deep ring-1 ring-brand-deep/15 hover:bg-brand-light; }
+  .btn-sm { @apply min-h-[40px] rounded-xl px-3.5 text-sm; }
+  .chip { @apply inline-flex min-h-[40px] items-center gap-1.5 whitespace-nowrap rounded-full bg-white px-4 text-sm font-medium text-slate-600 ring-1 ring-slate-200 transition; }
+  .chip-active { @apply bg-brand-deep text-white ring-brand-deep; }
+  .input { @apply block w-full min-h-[48px] rounded-xl border-0 bg-white px-4 py-3 text-slate-800 ring-1 ring-slate-200 placeholder:text-slate-400 focus:ring-2 focus:ring-brand; }
+  .label { @apply mb-1.5 block text-sm font-medium text-slate-700; }
+  .arabic { @apply font-arabic text-brand-deep; direction: rtl; line-height: 2.1; }
+  .eyebrow { @apply text-xs font-semibold uppercase tracking-[.18em] text-brand; }
+  .section-title { @apply font-display text-2xl font-bold text-brand-deep sm:text-3xl; }
+  .prose-ad p { @apply mb-4 leading-relaxed text-slate-700; }
+  .badge { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold; }
+  .pb-nav { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+  @screen lg { .pb-nav { padding-bottom: 0; } }
+  .no-scrollbar { scrollbar-width: none; } .no-scrollbar::-webkit-scrollbar { display: none; }
+  .pattern-islamic {
+    background-image:
+      radial-gradient(circle at 20px 20px, rgba(255,255,255,.16) 2px, transparent 2.5px),
+      linear-gradient(45deg, transparent 47%, rgba(255,255,255,.07) 48% 52%, transparent 53%),
+      linear-gradient(-45deg, transparent 47%, rgba(255,255,255,.07) 48% 52%, transparent 53%);
+    background-size: 40px 40px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fade-up { animation: fadeUp .45s ease both; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+}
