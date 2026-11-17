@@ -1,4 +1,4 @@
-import { supabase, isConfigured, siteUrl, frError } from './supabase'
+import { supabase, isConfigured, siteUrl, frError , db } from './supabase'
 
 const need = () => {
   if (!isConfigured) throw new Error("Les comptes ne sont pas encore activés sur ce site (configuration Supabase manquante).")
@@ -44,26 +44,31 @@ export async function updatePassword(password) {
   return wrap(supabase.auth.updateUser({ password }))
 }
 
-export async function getProfile(userId) {
-  const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle()
+// Récupère le profil ANDOU DIINEMA ; le crée à la première connexion
+export async function getProfile(user) {
+  const { data, error } = await db.from('profiles').select('*').eq('id', user.id).maybeSingle()
   if (error) throw new Error(frError(error))
-  return data
+  if (data) return data
+  const name = String(user.user_metadata?.display_name || '').slice(0, 60)
+  const created = await db.from('profiles').upsert({ id: user.id, display_name: name }, { onConflict: 'id' }).select().single()
+  if (created.error) throw new Error(frError(created.error))
+  return created.data
 }
 
 export async function updateProfile(userId, patch) {
   const allowed = ['display_name', 'reminder_prefs', 'programme_cycle', 'programme_started_at', 'encouragements']
   const clean = Object.fromEntries(Object.entries(patch).filter(([k]) => allowed.includes(k)))
-  return wrap(supabase.from('profiles').update(clean).eq('id', userId).select().single())
+  return wrap(db.from('profiles').update(clean).eq('id', userId).select().single())
 }
 
 export async function getRoles(userId) {
-  const { data, error } = await supabase.from('admin_roles').select('role').eq('user_id', userId)
+  const { data, error } = await db.from('admin_roles').select('role').eq('user_id', userId)
   if (error) return []
   return data.map((r) => r.role)
 }
 
 export async function deleteAccount() {
   need()
-  await wrap(supabase.rpc('delete_my_account'))
+  await wrap(db.rpc('delete_my_account'))
   await supabase.auth.signOut()
 }

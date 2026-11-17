@@ -109,8 +109,8 @@ export default function Profil() {
             <div className="card space-y-4 p-4">
               <button onClick={async () => { await signOut(); nav('/') }} className="btn-ghost w-full"><LogOut size={18} />Se déconnecter</button>
               <div className="rounded-xl bg-red-50 p-4">
-                <p className="text-sm font-semibold text-red-800">Supprimer mon compte</p>
-                <p className="mt-1 text-sm text-red-700">Toutes tes données (progression, bilans, favoris) seront définitivement effacées.</p>
+                <p className="text-sm font-semibold text-red-800">Supprimer mes données ANDOU DIINEMA</p>
+                <p className="mt-1 text-sm text-red-700">Toute ta progression, tes bilans, objectifs et favoris seront définitivement effacés, et tu seras déconnecté(e).</p>
                 <label htmlFor="del" className="mt-3 block text-sm text-red-800">Tape <b>SUPPRIMER</b> pour confirmer</label>
                 <input id="del" value={confirmDel} onChange={(e) => setConfirmDel(e.target.value)} className="input mt-1" autoComplete="off" />
                 <button onClick={del} disabled={confirmDel !== 'SUPPRIMER'} className="btn mt-3 w-full bg-red-600 text-white hover:bg-red-700"><Trash2 size={18} />Supprimer définitivement</button>

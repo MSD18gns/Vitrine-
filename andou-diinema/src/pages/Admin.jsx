@@ -5,7 +5,7 @@ import Seo from '../components/Seo'
 import { Alert, Spinner, EmptyState } from '../components/ui'
 import { useAuth } from '../hooks/useAuth'
 import { useContent } from '../hooks/useContent'
-import { supabase, frError } from '../services/supabase'
+import { supabase, frError , db } from '../services/supabase'
 import { VERSETS, HADITHS, INVOCATIONS } from '../content/sources'
 import { CATEGORIES, ARTICLES } from '../content/peches'
 import { PROGRAMME } from '../content/programme'
@@ -91,19 +91,19 @@ function Editor({ cfg, table, row, onClose, onSaved, can, isAdmin, categories })
   }
   const save = () => exec(async () => {
     const p = payload()
-    const q = isNew ? supabase.from(table).insert({ ...p, status: 'draft' }) : supabase.from(table).update(p).eq(cfg.pk, row[cfg.pk])
+    const q = isNew ? db.from(table).insert({ ...p, status: 'draft' }) : db.from(table).update(p).eq(cfg.pk, row[cfg.pk])
     const { error } = await q
     if (error) throw error
     if (isNew) onClose()
   }, 'Enregistré.')
   const setStatus = (s, msg) => exec(async () => {
     const patch = HAS_NOTE.includes(table) ? { status: s, review_note: note || null } : { status: s }
-    const { error } = await supabase.from(table).update(patch).eq(cfg.pk, row[cfg.pk])
+    const { error } = await db.from(table).update(patch).eq(cfg.pk, row[cfg.pk])
     if (error) throw error
   }, msg)
   const remove = () => {
     if (!window.confirm('Supprimer définitivement ce contenu ?')) return
-    exec(async () => { const { error } = await supabase.from(table).delete().eq(cfg.pk, row[cfg.pk]); if (error) throw error; onClose() }, 'Supprimé.')
+    exec(async () => { const { error } = await db.from(table).delete().eq(cfg.pk, row[cfg.pk]); if (error) throw error; onClose() }, 'Supprimé.')
   }
 
   return (
@@ -154,7 +154,7 @@ function CrudTab({ table, can, isAdmin, categories }) {
   const [st, setSt] = useState('all')
   const [edit, setEdit] = useState(undefined)
   const load = useCallback(async () => {
-    const { data, error } = await supabase.from(table).select('*').order(cfg.order, { ascending: !cfg.desc }).limit(1000)
+    const { data, error } = await db.from(table).select('*').order(cfg.order, { ascending: !cfg.desc }).limit(1000)
     if (error) setErr(frError(error)); else { setRows(data); setErr(null) }
   }, [table, cfg])
   useEffect(() => { setRows(null); load() }, [load])
@@ -202,7 +202,7 @@ async function importBase(onProgress) {
   const conflict = { articles: 'slug', daily_programs: 'jour' }
   for (const [t, rows] of sets) {
     onProgress(t)
-    const { error } = await supabase.from(t).upsert(rows, { onConflict: conflict[t] || 'id', ignoreDuplicates: true })
+    const { error } = await db.from(t).upsert(rows, { onConflict: conflict[t] || 'id', ignoreDuplicates: true })
     if (error) throw new Error(`${t} : ${frError(error)}`)
   }
 }
@@ -211,7 +211,7 @@ function Stats({ can, reload }) {
   const [s, setS] = useState(null)
   const [err, setErr] = useState(null)
   const [imp, setImp] = useState({})
-  const load = useCallback(() => supabase.rpc('admin_stats').then(({ data, error }) => (error ? setErr(frError(error)) : setS(data))), [])
+  const load = useCallback(() => db.rpc('admin_stats').then(({ data, error }) => (error ? setErr(frError(error)) : setS(data))), [])
   useEffect(() => { load() }, [load])
   const run = async () => {
     setImp({ busy: true })
@@ -244,7 +244,7 @@ function Stats({ can, reload }) {
 function Messages() {
   const [rows, setRows] = useState(null)
   const [err, setErr] = useState(null)
-  const load = useCallback(() => supabase.from('contact_messages').select('*').order('created_at', { ascending: false }).limit(200).then(({ data, error }) => (error ? setErr(frError(error)) : setRows(data))), [])
+  const load = useCallback(() => db.from('contact_messages').select('*').order('created_at', { ascending: false }).limit(200).then(({ data, error }) => (error ? setErr(frError(error)) : setRows(data))), [])
   useEffect(() => { load() }, [load])
   const act = async (q) => { const { error } = await q; if (error) setErr(frError(error)); load() }
   if (err) return <Alert type="error">{err}</Alert>
@@ -255,7 +255,7 @@ function Messages() {
       <li key={m.id} className={`card p-4 ${m.traite ? 'opacity-60' : ''}`}>
         <div className="flex flex-wrap items-baseline justify-between gap-2"><p className="font-semibold">{m.nom} <a href={`mailto:${m.email}`} className="text-sm font-normal text-brand">{m.email}</a></p><span className="text-xs text-slate-500">{new Date(m.created_at).toLocaleString('fr-FR')}</span></div>
         <p className="mt-2 whitespace-pre-line text-[15px] text-slate-700">{m.message}</p>
-        <div className="mt-3 flex gap-2"><button onClick={() => act(supabase.from('contact_messages').update({ traite: !m.traite }).eq('id', m.id))} className="btn-ghost btn-sm">{m.traite ? 'Marquer non traité' : 'Marquer traité'}</button><button onClick={() => window.confirm('Supprimer ce message ?') && act(supabase.from('contact_messages').delete().eq('id', m.id))} className="btn-sm btn text-red-600 hover:bg-red-50"><Trash2 size={16} /></button></div>
+        <div className="mt-3 flex gap-2"><button onClick={() => act(db.from('contact_messages').update({ traite: !m.traite }).eq('id', m.id))} className="btn-ghost btn-sm">{m.traite ? 'Marquer non traité' : 'Marquer traité'}</button><button onClick={() => window.confirm('Supprimer ce message ?') && act(db.from('contact_messages').delete().eq('id', m.id))} className="btn-sm btn text-red-600 hover:bg-red-50"><Trash2 size={16} /></button></div>
       </li>
     ))}</ul>
   )

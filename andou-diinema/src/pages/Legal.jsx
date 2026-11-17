@@ -9,7 +9,7 @@ const PAGES = {
       ['Données collectées', "Avec un compte : ton adresse e-mail, ton pseudo (facultatif), ta progression (missions, prières, dhikr, objectifs), tes bilans quotidiens, tes favoris et tes préférences de rappels. Sans compte : ces données restent uniquement dans le stockage de ton navigateur, sur ton appareil. Formulaire de contact : nom, e-mail et message."],
       ['Finalité', "Ces données servent uniquement à faire fonctionner ton espace personnel : afficher ta progression, tes favoris et tes rappels. L'administration ne voit que des statistiques globales anonymes (nombre d'utilisateurs, nombre de missions accomplies…)."],
       ['Sécurité', "Les données sont hébergées par Supabase (base PostgreSQL). L'accès est protégé par authentification et par des règles de sécurité au niveau de chaque ligne (RLS) : chaque utilisateur ne peut lire et modifier que ses propres données. Les connexions sont chiffrées (HTTPS)."],
-      ['Tes droits', "Tu peux à tout moment télécharger tes données et supprimer définitivement ton compte depuis la page Profil. La suppression efface immédiatement toutes tes données personnelles. Pour toute question, utilise la page Contact."],
+      ['Tes droits', "Tu peux à tout moment télécharger tes données et les supprimer définitivement depuis la page Profil. La suppression efface immédiatement toute ta progression, tes bilans, objectifs et favoris. Pour fermer aussi ton identifiant de connexion, écris-nous via la page Contact. Pour toute question, utilise la page Contact."],
       ['Cookies et stockage', "Le site n'utilise pas de cookies publicitaires ni de traceurs tiers. Le stockage local du navigateur sert à garder ta session, tes préférences et, en mode invité, ta progression."],
     ],
   },

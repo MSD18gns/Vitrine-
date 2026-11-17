@@ -5,7 +5,7 @@
 //  - Un contenu ARCHIVÉ en base est masqué du site.
 //  - Les nouveaux contenus publiés en base sont ajoutés.
 // =====================================================================
-import { supabase, isConfigured, frError } from './supabase'
+import { supabase, isConfigured, frError , db } from './supabase'
 import { store } from '../lib/storage'
 import { VERSETS, HADITHS, INVOCATIONS } from '../content/sources'
 import { CATEGORIES, ARTICLES } from '../content/peches'
@@ -69,9 +69,9 @@ export const cachedDb = () => store.get(CACHE, null)
 
 export async function fetchDbContent() {
   if (!isConfigured) return null
-  const pub = (t, cols = '*') => supabase.from(t).select(cols).eq('status', 'published')
+  const pub = (t, cols = '*') => db.from(t).select(cols).eq('status', 'published')
   const [statuses, categories, articles, versets, hadiths, invocations, programme] = await Promise.all([
-    supabase.rpc('content_statuses'),
+    db.rpc('content_statuses'),
     pub('categories'), pub('articles'), pub('quran_verses'), pub('hadiths'), pub('invocations'), pub('daily_programs'),
   ])
   const all = { statuses, categories, articles, versets, hadiths, invocations, programme }
@@ -83,7 +83,7 @@ export async function fetchDbContent() {
 
 export async function topArticles(limit = 5) {
   if (!isConfigured) return []
-  const { data, error } = await supabase.rpc('top_articles', { p_limit: limit })
+  const { data, error } = await db.rpc('top_articles', { p_limit: limit })
   return error ? [] : data
 }
 
@@ -91,7 +91,7 @@ export function countView(slug) {
   if (!isConfigured) return
   const k = `ad:viewed:${slug}`
   if (sessionStorageSafe(k)) return
-  supabase.rpc('increment_article_view', { p_slug: slug }).then(() => {}, () => {})
+  db.rpc('increment_article_view', { p_slug: slug }).then(() => {}, () => {})
 }
 function sessionStorageSafe(k) {
   try { if (sessionStorage.getItem(k)) return true; sessionStorage.setItem(k, '1') } catch { /* ignore */ }
@@ -100,6 +100,6 @@ function sessionStorageSafe(k) {
 
 export async function sendContactMessage({ nom, email, message }) {
   if (!isConfigured) throw new Error('Le formulaire sera actif dès la configuration de la base de données. Écris-nous par e-mail en attendant.')
-  const { error } = await supabase.from('contact_messages').insert({ nom: nom.trim(), email: email.trim(), message: message.trim() })
+  const { error } = await db.from('contact_messages').insert({ nom: nom.trim(), email: email.trim(), message: message.trim() })
   if (error) throw new Error(frError(error))
 }

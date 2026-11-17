@@ -5,7 +5,7 @@
 //   - "remote" : compte connecté (Supabase, protégé par RLS)
 //  À la connexion, les données invitées sont transférées dans le compte.
 // =====================================================================
-import { supabase, frError } from './supabase'
+import { supabase, frError , db } from './supabase'
 import { store } from '../lib/storage'
 import { dayKey } from '../lib/dates'
 
@@ -66,32 +66,32 @@ const local = {
 const remote = (user) => ({
   name: 'remote',
   async listProgress(kind, { from, to } = {}) {
-    let q = supabase.from('user_progress').select('kind, ref, day, value, data, updated_at').eq('kind', kind)
+    let q = db.from('user_progress').select('kind, ref, day, value, data, updated_at').eq('kind', kind)
     if (from) q = q.gte('day', from)
     if (to) q = q.lte('day', to)
     return ok(await q.order('day', { ascending: true }).limit(5000))
   },
   async upsertProgress(row) {
-    ok(await supabase.from('user_progress').upsert({ user_id: user.id, value: 1, data: {}, ...row }, { onConflict: 'user_id,kind,ref,day' }))
+    ok(await db.from('user_progress').upsert({ user_id: user.id, value: 1, data: {}, ...row }, { onConflict: 'user_id,kind,ref,day' }))
   },
   async deleteProgress({ kind, ref, day }) {
-    let q = supabase.from('user_progress').delete().eq('user_id', user.id).eq('kind', kind).eq('ref', ref)
+    let q = db.from('user_progress').delete().eq('user_id', user.id).eq('kind', kind).eq('ref', ref)
     if (day !== undefined) q = q.eq('day', day)
     ok(await q)
   },
   async getMeta() {
-    const p = ok(await supabase.from('profiles').select('programme_cycle, encouragements, programme_started_at, reminder_prefs, display_name').eq('id', user.id).maybeSingle())
+    const p = ok(await db.from('profiles').select('programme_cycle, encouragements, programme_started_at, reminder_prefs, display_name').eq('id', user.id).maybeSingle())
     return p || { programme_cycle: 1, encouragements: 0, programme_started_at: null, reminder_prefs: {} }
   },
-  async setMeta(patch) { ok(await supabase.from('profiles').update(patch).eq('id', user.id)) },
-  async getReview(day) { return ok(await supabase.from('daily_reviews').select('*').eq('day', day).maybeSingle()) },
-  async listReviews(limit = 30) { return ok(await supabase.from('daily_reviews').select('*').order('day', { ascending: false }).limit(limit)) },
+  async setMeta(patch) { ok(await db.from('profiles').upsert({ id: user.id, ...patch }, { onConflict: 'id' })) },
+  async getReview(day) { return ok(await db.from('daily_reviews').select('*').eq('day', day).maybeSingle()) },
+  async listReviews(limit = 30) { return ok(await db.from('daily_reviews').select('*').order('day', { ascending: false }).limit(limit)) },
   async saveReview(r) {
-    ok(await supabase.from('daily_reviews').upsert({ user_id: user.id, day: r.day, answers: r.answers, note: r.note || null, score: r.score }, { onConflict: 'user_id,day' }))
+    ok(await db.from('daily_reviews').upsert({ user_id: user.id, day: r.day, answers: r.answers, note: r.note || null, score: r.score }, { onConflict: 'user_id,day' }))
   },
-  async listBookmarks() { return ok(await supabase.from('bookmarks').select('item_type, item_id, created_at').order('created_at', { ascending: false })) },
-  async addBookmark(b) { ok(await supabase.from('bookmarks').upsert({ user_id: user.id, ...b }, { onConflict: 'user_id,item_type,item_id' })) },
-  async removeBookmark(b) { ok(await supabase.from('bookmarks').delete().eq('user_id', user.id).eq('item_type', b.item_type).eq('item_id', b.item_id)) },
+  async listBookmarks() { return ok(await db.from('bookmarks').select('item_type, item_id, created_at').order('created_at', { ascending: false })) },
+  async addBookmark(b) { ok(await db.from('bookmarks').upsert({ user_id: user.id, ...b }, { onConflict: 'user_id,item_type,item_id' })) },
+  async removeBookmark(b) { ok(await db.from('bookmarks').delete().eq('user_id', user.id).eq('item_type', b.item_type).eq('item_id', b.item_id)) },
 })
 
 export const getDriver = (user) => (user && supabase ? remote(user) : local)
@@ -103,7 +103,7 @@ export async function migrateGuestData(user) {
   const rows = local._rows()
   if (rows.length) {
     const payload = rows.map(({ kind, ref, day, value, data }) => ({ user_id: user.id, kind, ref, day, value, data: data || {} }))
-    ok(await supabase.from('user_progress').upsert(payload, { onConflict: 'user_id,kind,ref,day' }))
+    ok(await db.from('user_progress').upsert(payload, { onConflict: 'user_id,kind,ref,day' }))
   }
   for (const rv of await local.listReviews(365)) await r.saveReview(rv)
   for (const b of await local.listBookmarks()) await r.addBookmark({ item_type: b.item_type, item_id: b.item_id })

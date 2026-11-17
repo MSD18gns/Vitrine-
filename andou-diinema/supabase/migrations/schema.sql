@@ -1,5 +1,7 @@
 -- =====================================================================
 --  ANDOU DIINEMA — Schéma Supabase (PostgreSQL)
+--  Toutes les tables, fonctions et types sont préfixés « ad_ » afin de pouvoir
+--  cohabiter avec d'autres applications dans le même projet Supabase.
 --  À exécuter une seule fois dans Supabase > SQL Editor (ou via la CLI).
 --  Sécurité : RLS activée sur TOUTES les tables. Les données personnelles
 --  (progression, bilans, favoris) ne sont lisibles que par leur propriétaire.
@@ -11,11 +13,11 @@ create extension if not exists pgcrypto;
 -- Types
 -- ---------------------------------------------------------------------
 do $$ begin
-  create type public.content_status as enum ('draft', 'review', 'validated', 'published', 'archived');
+  create type public.ad_content_status as enum ('draft', 'review', 'validated', 'published', 'archived');
 exception when duplicate_object then null; end $$;
 
 do $$ begin
-  create type public.staff_role as enum ('admin', 'editor', 'reviewer');
+  create type public.ad_staff_role as enum ('admin', 'editor', 'reviewer');
 exception when duplicate_object then null; end $$;
 
 -- ---------------------------------------------------------------------
@@ -25,35 +27,35 @@ exception when duplicate_object then null; end $$;
 --   reviewer : valider religieusement les contenus (personne qualifiée)
 -- Les rôles s'attribuent UNIQUEMENT en SQL (voir README), jamais depuis le site.
 -- ---------------------------------------------------------------------
-create table if not exists public.admin_roles (
+create table if not exists public.ad_admin_roles (
   user_id    uuid not null references auth.users (id) on delete cascade,
-  role       public.staff_role not null,
+  role       public.ad_staff_role not null,
   created_at timestamptz not null default now(),
   primary key (user_id, role)
 );
 
-create or replace function public.has_role(roles public.staff_role[])
+create or replace function public.ad_has_role(roles public.ad_staff_role[])
 returns boolean language sql stable security definer set search_path = public as $$
   select exists (
-    select 1 from public.admin_roles
+    select 1 from public.ad_admin_roles
     where user_id = auth.uid() and role = any (roles)
   );
 $$;
 
-create or replace function public.is_admin()
+create or replace function public.ad_is_admin()
 returns boolean language sql stable security definer set search_path = public as $$
-  select public.has_role(array['admin']::public.staff_role[]);
+  select public.ad_has_role(array['admin']::public.ad_staff_role[]);
 $$;
 
-create or replace function public.is_staff()
+create or replace function public.ad_is_staff()
 returns boolean language sql stable security definer set search_path = public as $$
-  select public.has_role(array['admin', 'editor', 'reviewer']::public.staff_role[]);
+  select public.ad_has_role(array['admin', 'editor', 'reviewer']::public.ad_staff_role[]);
 $$;
 
 -- ---------------------------------------------------------------------
 -- Profils (créés automatiquement à l'inscription)
 -- ---------------------------------------------------------------------
-create table if not exists public.profiles (
+create table if not exists public.ad_profiles (
   id                    uuid primary key references auth.users (id) on delete cascade,
   display_name          text check (char_length(display_name) <= 60),
   reminder_prefs        jsonb not null default '{}'::jsonb,
@@ -64,22 +66,9 @@ create table if not exists public.profiles (
   updated_at            timestamptz not null default now()
 );
 
-create or replace function public.handle_new_user()
-returns trigger language plpgsql security definer set search_path = public as $$
-begin
-  insert into public.profiles (id, display_name)
-  values (new.id, left(coalesce(new.raw_user_meta_data ->> 'display_name', ''), 60))
-  on conflict (id) do nothing;
-  return new;
-end;
-$$;
+-- Profil créé par l'application à la première connexion (aucun trigger sur auth.users : projet partagé)
 
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
-
-create or replace function public.touch_updated_at()
+create or replace function public.ad_touch_updated_at()
 returns trigger language plpgsql set search_path = public as $$
 begin new.updated_at = now(); return new; end;
 $$;
@@ -87,28 +76,28 @@ $$;
 -- ---------------------------------------------------------------------
 -- Contenus
 -- ---------------------------------------------------------------------
-create table if not exists public.categories (
+create table if not exists public.ad_categories (
   id          text primary key check (id ~ '^[a-z0-9-]+$'),
   lettre      text,
   titre       text not null,
   resume      text,
   icon        text,
   position    int not null default 0,
-  status      public.content_status not null default 'draft',
+  status      public.ad_content_status not null default 'draft',
   validated_by uuid references auth.users (id),
   validated_at timestamptz,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
 );
 
-create table if not exists public.quran_verses (
+create table if not exists public.ad_quran_verses (
   id            text primary key check (id ~ '^[a-z0-9-]+$'),
   sourate       text not null,
   sourate_num   int not null check (sourate_num between 1 and 114),
   ayat          text not null,
   texte_ar      text,
   traduction_fr text not null,
-  status        public.content_status not null default 'draft',
+  status        public.ad_content_status not null default 'draft',
   review_note   text,
   validated_by  uuid references auth.users (id),
   validated_at  timestamptz,
@@ -116,14 +105,14 @@ create table if not exists public.quran_verses (
   updated_at    timestamptz not null default now()
 );
 
-create table if not exists public.hadiths (
+create table if not exists public.ad_hadiths (
   id           text primary key check (id ~ '^[a-z0-9-]+$'),
   texte_fr     text not null,
   texte_ar     text,
   reference    text not null,
   grade        text not null,
   contexte     text,
-  status       public.content_status not null default 'draft',
+  status       public.ad_content_status not null default 'draft',
   review_note  text,
   validated_by uuid references auth.users (id),
   validated_at timestamptz,
@@ -131,7 +120,7 @@ create table if not exists public.hadiths (
   updated_at   timestamptz not null default now()
 );
 
-create table if not exists public.invocations (
+create table if not exists public.ad_invocations (
   id                text primary key check (id ~ '^[a-z0-9-]+$'),
   titre             text not null,
   theme             text,
@@ -139,7 +128,7 @@ create table if not exists public.invocations (
   translitteration  text,
   traduction_fr     text not null,
   reference         text not null,
-  status            public.content_status not null default 'draft',
+  status            public.ad_content_status not null default 'draft',
   review_note       text,
   validated_by      uuid references auth.users (id),
   validated_at      timestamptz,
@@ -147,10 +136,10 @@ create table if not exists public.invocations (
   updated_at        timestamptz not null default now()
 );
 
-create table if not exists public.articles (
+create table if not exists public.ad_articles (
   id             uuid primary key default gen_random_uuid(),
   slug           text not null unique check (slug ~ '^[a-z0-9-]+$'),
-  category_id    text references public.categories (id) on update cascade on delete set null,
+  category_id    text references public.ad_categories (id) on update cascade on delete set null,
   titre          text not null,
   accroche       text,
   hukm           text,
@@ -167,7 +156,7 @@ create table if not exists public.articles (
   hadith_ids     text[] not null default '{}',
   invocation_id  text,
   encouragement  text,
-  status         public.content_status not null default 'draft',
+  status         public.ad_content_status not null default 'draft',
   review_note    text,
   validated_by   uuid references auth.users (id),
   validated_at   timestamptz,
@@ -177,34 +166,34 @@ create table if not exists public.articles (
   created_at     timestamptz not null default now(),
   updated_at     timestamptz not null default now()
 );
-create index if not exists articles_status_idx on public.articles (status);
-create index if not exists articles_category_idx on public.articles (category_id);
+create index if not exists ad_articles_status_idx on public.ad_articles (status);
+create index if not exists ad_articles_category_idx on public.ad_articles (category_id);
 
 -- Catalogue des comportements (un péché peut être relié à un article détaillé)
-create table if not exists public.sins (
+create table if not exists public.ad_sins (
   id           text primary key check (id ~ '^[a-z0-9-]+$'),
-  category_id  text references public.categories (id) on update cascade on delete set null,
+  category_id  text references public.ad_categories (id) on update cascade on delete set null,
   nom          text not null,
   hukm         text,
-  article_slug text references public.articles (slug) on update cascade on delete set null,
-  status       public.content_status not null default 'draft',
+  article_slug text references public.ad_articles (slug) on update cascade on delete set null,
+  status       public.ad_content_status not null default 'draft',
   validated_by uuid references auth.users (id),
   validated_at timestamptz,
   created_at   timestamptz not null default now(),
   updated_at   timestamptz not null default now()
 );
 
-create table if not exists public.daily_programs (
+create table if not exists public.ad_daily_programs (
   jour          int primary key check (jour between 1 and 30),
   phase         int not null check (phase between 1 and 6),
   mission       text not null,
   enseignement  text,
-  verset_id     text references public.quran_verses (id) on delete set null,
-  hadith_id     text references public.hadiths (id) on delete set null,
+  verset_id     text references public.ad_quran_verses (id) on delete set null,
+  hadith_id     text references public.ad_hadiths (id) on delete set null,
   explication   text,
   action        text,
-  invocation_id text references public.invocations (id) on delete set null,
-  status        public.content_status not null default 'draft',
+  invocation_id text references public.ad_invocations (id) on delete set null,
+  status        public.ad_content_status not null default 'draft',
   review_note   text,
   validated_by  uuid references auth.users (id),
   validated_at  timestamptz,
@@ -213,13 +202,13 @@ create table if not exists public.daily_programs (
 );
 
 -- Rappels / annonces publiés par l'équipe (programmables)
-create table if not exists public.notifications (
+create table if not exists public.ad_notifications (
   id           uuid primary key default gen_random_uuid(),
   titre        text not null check (char_length(titre) <= 120),
   message      text not null check (char_length(message) <= 1000),
   lien         text check (lien is null or lien ~ '^/'),
   scheduled_at timestamptz not null default now(),
-  status       public.content_status not null default 'draft',
+  status       public.ad_content_status not null default 'draft',
   validated_by uuid references auth.users (id),
   validated_at timestamptz,
   created_by   uuid references auth.users (id) default auth.uid(),
@@ -232,7 +221,7 @@ create table if not exists public.notifications (
 -- ---------------------------------------------------------------------
 -- kind : 'programme' (ref = "<cycle>:<jour>"), 'prayer' (ref = fajr|dhuhr|asr|maghrib|isha),
 --        'dhikr' (ref = formule), 'goal' (ref = identifiant d'objectif)
-create table if not exists public.user_progress (
+create table if not exists public.ad_user_progress (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid not null references auth.users (id) on delete cascade default auth.uid(),
   kind       text not null check (kind in ('programme', 'prayer', 'dhikr', 'goal')),
@@ -244,9 +233,9 @@ create table if not exists public.user_progress (
   updated_at timestamptz not null default now(),
   unique (user_id, kind, ref, day)
 );
-create index if not exists user_progress_user_idx on public.user_progress (user_id, kind, day);
+create index if not exists ad_user_progress_user_idx on public.ad_user_progress (user_id, kind, day);
 
-create table if not exists public.daily_reviews (
+create table if not exists public.ad_daily_reviews (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid not null references auth.users (id) on delete cascade default auth.uid(),
   day        date not null default current_date,
@@ -258,7 +247,7 @@ create table if not exists public.daily_reviews (
   unique (user_id, day)
 );
 
-create table if not exists public.bookmarks (
+create table if not exists public.ad_bookmarks (
   user_id    uuid not null references auth.users (id) on delete cascade default auth.uid(),
   item_type  text not null check (item_type in ('article', 'hadith', 'verset', 'invocation', 'theme')),
   item_id    text not null check (char_length(item_id) <= 120),
@@ -267,7 +256,7 @@ create table if not exists public.bookmarks (
 );
 
 -- Messages du formulaire de contact (lisibles par les administrateurs uniquement)
-create table if not exists public.contact_messages (
+create table if not exists public.ad_contact_messages (
   id         uuid primary key default gen_random_uuid(),
   nom        text not null check (char_length(nom) between 1 and 100),
   email      text not null check (char_length(email) <= 200 and email ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
@@ -281,18 +270,18 @@ create table if not exists public.contact_messages (
 -- Workflow de validation : brouillon → relecture → validé → publié
 -- Un contenu ne peut être PUBLIÉ que s'il a été VALIDÉ par un reviewer/admin.
 -- ---------------------------------------------------------------------
-create or replace function public.enforce_validation()
+create or replace function public.ad_enforce_validation()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
   if tg_op = 'UPDATE' and new.status is distinct from old.status then
     if new.status = 'validated' then
-      if not public.has_role(array['admin', 'reviewer']::public.staff_role[]) then
+      if not public.ad_has_role(array['admin', 'reviewer']::public.ad_staff_role[]) then
         raise exception 'Seul un validateur qualifié peut valider un contenu.';
       end if;
       new.validated_by := auth.uid();
       new.validated_at := now();
     elsif new.status = 'published' then
-      if not public.is_admin() then
+      if not public.ad_is_admin() then
         raise exception 'Seul un administrateur peut publier.';
       end if;
     end if;
@@ -325,17 +314,17 @@ $$;
 do $$
 declare t text;
 begin
-  foreach t in array array['categories','quran_verses','hadiths','invocations','articles','sins','daily_programs','notifications'] loop
-    execute format('drop trigger if exists enforce_validation on public.%I', t);
-    execute format('create trigger enforce_validation before insert or update on public.%I for each row execute function public.enforce_validation()', t);
+  foreach t in array array['ad_categories','ad_quran_verses','ad_hadiths','ad_invocations','ad_articles','ad_sins','ad_daily_programs','ad_notifications'] loop
+    execute format('drop trigger if exists ad_enforce_validation on public.%I', t);
+    execute format('create trigger ad_enforce_validation before insert or update on public.%I for each row execute function public.ad_enforce_validation()', t);
   end loop;
-  foreach t in array array['profiles','user_progress','daily_reviews'] loop
-    execute format('drop trigger if exists touch_updated_at on public.%I', t);
-    execute format('create trigger touch_updated_at before update on public.%I for each row execute function public.touch_updated_at()', t);
+  foreach t in array array['ad_profiles','ad_user_progress','ad_daily_reviews'] loop
+    execute format('drop trigger if exists ad_touch_updated_at on public.%I', t);
+    execute format('create trigger ad_touch_updated_at before update on public.%I for each row execute function public.ad_touch_updated_at()', t);
   end loop;
 end $$;
 
-create or replace function public.set_published_at()
+create or replace function public.ad_set_published_at()
 returns trigger language plpgsql set search_path = public as $$
 begin
   if new.status = 'published' and (old is null or old.status is distinct from 'published') then
@@ -344,36 +333,36 @@ begin
   return new;
 end;
 $$;
-drop trigger if exists set_published_at on public.articles;
-create trigger set_published_at before insert or update on public.articles
-  for each row execute function public.set_published_at();
+drop trigger if exists ad_set_published_at on public.ad_articles;
+create trigger ad_set_published_at before insert or update on public.ad_articles
+  for each row execute function public.ad_set_published_at();
 
 -- ---------------------------------------------------------------------
 -- Row Level Security
 -- ---------------------------------------------------------------------
-alter table public.admin_roles      enable row level security;
-alter table public.profiles         enable row level security;
-alter table public.categories       enable row level security;
-alter table public.quran_verses     enable row level security;
-alter table public.hadiths          enable row level security;
-alter table public.invocations      enable row level security;
-alter table public.articles         enable row level security;
-alter table public.sins             enable row level security;
-alter table public.daily_programs   enable row level security;
-alter table public.notifications    enable row level security;
-alter table public.user_progress    enable row level security;
-alter table public.daily_reviews    enable row level security;
-alter table public.bookmarks        enable row level security;
-alter table public.contact_messages enable row level security;
+alter table public.ad_admin_roles      enable row level security;
+alter table public.ad_profiles         enable row level security;
+alter table public.ad_categories       enable row level security;
+alter table public.ad_quran_verses     enable row level security;
+alter table public.ad_hadiths          enable row level security;
+alter table public.ad_invocations      enable row level security;
+alter table public.ad_articles         enable row level security;
+alter table public.ad_sins             enable row level security;
+alter table public.ad_daily_programs   enable row level security;
+alter table public.ad_notifications    enable row level security;
+alter table public.ad_user_progress    enable row level security;
+alter table public.ad_daily_reviews    enable row level security;
+alter table public.ad_bookmarks        enable row level security;
+alter table public.ad_contact_messages enable row level security;
 
 -- admin_roles : chacun voit ses propres rôles ; l'admin voit tout. Aucune écriture via l'API.
-drop policy if exists "roles_select" on public.admin_roles;
-create policy "roles_select" on public.admin_roles for select to authenticated
-  using (user_id = (select auth.uid()) or public.is_admin());
+drop policy if exists "roles_select" on public.ad_admin_roles;
+create policy "roles_select" on public.ad_admin_roles for select to authenticated
+  using (user_id = (select auth.uid()) or public.ad_is_admin());
 
 -- profiles : uniquement son propre profil
-drop policy if exists "profiles_own" on public.profiles;
-create policy "profiles_own" on public.profiles for all to authenticated
+drop policy if exists "profiles_own" on public.ad_profiles;
+create policy "profiles_own" on public.ad_profiles for all to authenticated
   using (id = (select auth.uid())) with check (id = (select auth.uid()));
 
 -- Contenus : lecture publique des contenus publiés ; l'équipe voit tout ;
@@ -381,123 +370,128 @@ create policy "profiles_own" on public.profiles for all to authenticated
 do $$
 declare t text;
 begin
-  foreach t in array array['categories','quran_verses','hadiths','invocations','articles','sins','daily_programs'] loop
+  foreach t in array array['ad_categories','ad_quran_verses','ad_hadiths','ad_invocations','ad_articles','ad_sins','ad_daily_programs'] loop
     execute format('drop policy if exists "read_published" on public.%I', t);
     execute format($p$create policy "read_published" on public.%I for select to anon, authenticated
-                   using (status = 'published' or public.is_staff())$p$, t);
+                   using (status = 'published' or public.ad_is_staff())$p$, t);
     execute format('drop policy if exists "staff_insert" on public.%I', t);
     execute format($p$create policy "staff_insert" on public.%I for insert to authenticated
-                   with check (public.has_role(array['admin','editor']::public.staff_role[]))$p$, t);
+                   with check (public.ad_has_role(array['admin','editor']::public.ad_staff_role[]))$p$, t);
     execute format('drop policy if exists "staff_update" on public.%I', t);
     execute format($p$create policy "staff_update" on public.%I for update to authenticated
-                   using (public.is_staff()) with check (public.is_staff())$p$, t);
+                   using (public.ad_is_staff()) with check (public.ad_is_staff())$p$, t);
     execute format('drop policy if exists "admin_delete" on public.%I', t);
     execute format($p$create policy "admin_delete" on public.%I for delete to authenticated
-                   using (public.is_admin())$p$, t);
+                   using (public.ad_is_admin())$p$, t);
   end loop;
 end $$;
 
-drop policy if exists "notif_read" on public.notifications;
-create policy "notif_read" on public.notifications for select to anon, authenticated
-  using ((status = 'published' and scheduled_at <= now()) or public.is_staff());
-drop policy if exists "notif_insert" on public.notifications;
-create policy "notif_insert" on public.notifications for insert to authenticated
-  with check (public.has_role(array['admin','editor']::public.staff_role[]));
-drop policy if exists "notif_update" on public.notifications;
-create policy "notif_update" on public.notifications for update to authenticated
-  using (public.is_staff()) with check (public.is_staff());
-drop policy if exists "notif_delete" on public.notifications;
-create policy "notif_delete" on public.notifications for delete to authenticated
-  using (public.is_admin());
+drop policy if exists "notif_read" on public.ad_notifications;
+create policy "notif_read" on public.ad_notifications for select to anon, authenticated
+  using ((status = 'published' and scheduled_at <= now()) or public.ad_is_staff());
+drop policy if exists "notif_insert" on public.ad_notifications;
+create policy "notif_insert" on public.ad_notifications for insert to authenticated
+  with check (public.ad_has_role(array['admin','editor']::public.ad_staff_role[]));
+drop policy if exists "notif_update" on public.ad_notifications;
+create policy "notif_update" on public.ad_notifications for update to authenticated
+  using (public.ad_is_staff()) with check (public.ad_is_staff());
+drop policy if exists "notif_delete" on public.ad_notifications;
+create policy "notif_delete" on public.ad_notifications for delete to authenticated
+  using (public.ad_is_admin());
 
 -- Données personnelles : propriétaire uniquement (même les admins n'y ont pas accès)
-drop policy if exists "progress_own" on public.user_progress;
-create policy "progress_own" on public.user_progress for all to authenticated
+drop policy if exists "progress_own" on public.ad_user_progress;
+create policy "progress_own" on public.ad_user_progress for all to authenticated
   using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
-drop policy if exists "reviews_own" on public.daily_reviews;
-create policy "reviews_own" on public.daily_reviews for all to authenticated
+drop policy if exists "reviews_own" on public.ad_daily_reviews;
+create policy "reviews_own" on public.ad_daily_reviews for all to authenticated
   using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
-drop policy if exists "bookmarks_own" on public.bookmarks;
-create policy "bookmarks_own" on public.bookmarks for all to authenticated
+drop policy if exists "bookmarks_own" on public.ad_bookmarks;
+create policy "bookmarks_own" on public.ad_bookmarks for all to authenticated
   using (user_id = (select auth.uid())) with check (user_id = (select auth.uid()));
 
 -- Contact : tout le monde peut écrire, seuls les admins lisent/traitent
-drop policy if exists "contact_insert" on public.contact_messages;
-create policy "contact_insert" on public.contact_messages for insert to anon, authenticated
+drop policy if exists "contact_insert" on public.ad_contact_messages;
+create policy "contact_insert" on public.ad_contact_messages for insert to anon, authenticated
   with check (traite = false and (user_id is null or user_id = (select auth.uid())));
-drop policy if exists "contact_admin" on public.contact_messages;
-create policy "contact_admin" on public.contact_messages for select to authenticated using (public.is_admin());
-drop policy if exists "contact_admin_upd" on public.contact_messages;
-create policy "contact_admin_upd" on public.contact_messages for update to authenticated using (public.is_admin()) with check (public.is_admin());
-drop policy if exists "contact_admin_del" on public.contact_messages;
-create policy "contact_admin_del" on public.contact_messages for delete to authenticated using (public.is_admin());
+drop policy if exists "contact_admin" on public.ad_contact_messages;
+create policy "contact_admin" on public.ad_contact_messages for select to authenticated using (public.ad_is_admin());
+drop policy if exists "contact_admin_upd" on public.ad_contact_messages;
+create policy "contact_admin_upd" on public.ad_contact_messages for update to authenticated using (public.ad_is_admin()) with check (public.ad_is_admin());
+drop policy if exists "contact_admin_del" on public.ad_contact_messages;
+create policy "contact_admin_del" on public.ad_contact_messages for delete to authenticated using (public.ad_is_admin());
 
 -- ---------------------------------------------------------------------
 -- Fonctions publiques (RPC)
 -- ---------------------------------------------------------------------
 -- Statut de validation de chaque contenu (identifiant + statut seulement, aucune donnée privée)
-create or replace function public.content_statuses()
-returns table (kind text, id text, status public.content_status, validated_at timestamptz)
+create or replace function public.ad_content_statuses()
+returns table (kind text, id text, status public.ad_content_status, validated_at timestamptz)
 language sql stable security definer set search_path = public as $$
-  select 'article', slug, status, validated_at from public.articles
-  union all select 'verset', id, status, validated_at from public.quran_verses
-  union all select 'hadith', id, status, validated_at from public.hadiths
-  union all select 'invocation', id, status, validated_at from public.invocations
-  union all select 'programme', jour::text, status, validated_at from public.daily_programs
-  union all select 'categorie', id, status, validated_at from public.categories;
+  select 'article', slug, status, validated_at from public.ad_articles
+  union all select 'verset', id, status, validated_at from public.ad_quran_verses
+  union all select 'hadith', id, status, validated_at from public.ad_hadiths
+  union all select 'invocation', id, status, validated_at from public.ad_invocations
+  union all select 'programme', jour::text, status, validated_at from public.ad_daily_programs
+  union all select 'categorie', id, status, validated_at from public.ad_categories;
 $$;
 
 -- Compteur de lectures (articles publiés uniquement)
-create or replace function public.increment_article_view(p_slug text)
+create or replace function public.ad_increment_article_view(p_slug text)
 returns void language sql security definer set search_path = public as $$
-  update public.articles set views = views + 1 where slug = p_slug and status = 'published';
+  update public.ad_articles set views = views + 1 where slug = p_slug and status = 'published';
 $$;
 
 -- Articles les plus consultés (publics)
-create or replace function public.top_articles(p_limit int default 5)
+create or replace function public.ad_top_articles(p_limit int default 5)
 returns table (slug text, views int)
 language sql stable security definer set search_path = public as $$
-  select slug, views from public.articles where status = 'published' and views > 0
+  select slug, views from public.ad_articles where status = 'published' and views > 0
   order by views desc limit least(greatest(p_limit, 1), 20);
 $$;
 
 -- Statistiques générales pour l'administration : uniquement des agrégats anonymes
-create or replace function public.admin_stats()
+create or replace function public.ad_admin_stats()
 returns jsonb language plpgsql stable security definer set search_path = public as $$
 begin
-  if not public.is_staff() then
+  if not public.ad_is_staff() then
     raise exception 'Accès refusé';
   end if;
   return jsonb_build_object(
-    'utilisateurs', (select count(*) from public.profiles),
-    'nouveaux_7j', (select count(*) from public.profiles where created_at > now() - interval '7 days'),
-    'actifs_7j', (select count(distinct user_id) from public.user_progress where day > current_date - 7),
-    'missions_validees', (select count(*) from public.user_progress where kind = 'programme'),
-    'prieres_suivies', (select count(*) from public.user_progress where kind = 'prayer'),
-    'bilans', (select count(*) from public.daily_reviews),
-    'favoris', (select count(*) from public.bookmarks),
-    'messages_non_traites', (select count(*) from public.contact_messages where not traite),
-    'articles', (select jsonb_object_agg(status, n) from (select status, count(*) n from public.articles group by status) s),
-    'hadiths', (select count(*) from public.hadiths),
-    'versets', (select count(*) from public.quran_verses),
-    'vues_totales', (select coalesce(sum(views), 0) from public.articles)
+    'utilisateurs', (select count(*) from public.ad_profiles),
+    'nouveaux_7j', (select count(*) from public.ad_profiles where created_at > now() - interval '7 days'),
+    'actifs_7j', (select count(distinct user_id) from public.ad_user_progress where day > current_date - 7),
+    'missions_validees', (select count(*) from public.ad_user_progress where kind = 'programme'),
+    'prieres_suivies', (select count(*) from public.ad_user_progress where kind = 'prayer'),
+    'bilans', (select count(*) from public.ad_daily_reviews),
+    'favoris', (select count(*) from public.ad_bookmarks),
+    'messages_non_traites', (select count(*) from public.ad_contact_messages where not traite),
+    'articles', (select jsonb_object_agg(status, n) from (select status, count(*) n from public.ad_articles group by status) s),
+    'hadiths', (select count(*) from public.ad_hadiths),
+    'versets', (select count(*) from public.ad_quran_verses),
+    'vues_totales', (select coalesce(sum(views), 0) from public.ad_articles)
   );
 end;
 $$;
 
--- Suppression de compte par l'utilisateur lui-même (RGPD)
-create or replace function public.delete_my_account()
-returns void language plpgsql security definer set search_path = public, auth as $$
+-- Suppression de toutes les données ANDOU DIINEMA de l'utilisateur (RGPD)
+create or replace function public.ad_delete_my_account()
+returns void language plpgsql security definer set search_path = public as $$
 begin
   if auth.uid() is null then raise exception 'Non connecté'; end if;
-  delete from auth.users where id = auth.uid();
+  delete from public.ad_user_progress where user_id = auth.uid();
+  delete from public.ad_daily_reviews where user_id = auth.uid();
+  delete from public.ad_bookmarks where user_id = auth.uid();
+  delete from public.ad_admin_roles where user_id = auth.uid();
+  update public.ad_contact_messages set user_id = null where user_id = auth.uid();
+  delete from public.ad_profiles where id = auth.uid();
 end;
 $$;
 
-revoke all on function public.admin_stats() from public, anon;
-grant execute on function public.admin_stats() to authenticated;
-revoke all on function public.delete_my_account() from public, anon;
-grant execute on function public.delete_my_account() to authenticated;
-grant execute on function public.content_statuses() to anon, authenticated;
-grant execute on function public.increment_article_view(text) to anon, authenticated;
-grant execute on function public.top_articles(int) to anon, authenticated;
+revoke all on function public.ad_admin_stats() from public, anon;
+grant execute on function public.ad_admin_stats() to authenticated;
+revoke all on function public.ad_delete_my_account() from public, anon;
+grant execute on function public.ad_delete_my_account() to authenticated;
+grant execute on function public.ad_content_statuses() to anon, authenticated;
+grant execute on function public.ad_increment_article_view(text) to anon, authenticated;
+grant execute on function public.ad_top_articles(int) to anon, authenticated;

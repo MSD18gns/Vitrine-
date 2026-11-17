@@ -16,7 +16,7 @@ export function AuthProvider({ children }) {
   const loadUser = useCallback(async (u) => {
     if (!u) { setProfile(null); setRoles([]); return }
     try {
-      const [p, r] = await Promise.all([getProfile(u.id), getRoles(u.id)])
+      const [p, r] = await Promise.all([getProfile(u), getRoles(u.id)])
       setProfile(p); setRoles(r)
     } catch { /* profil indisponible : on continue */ }
     try { if (await migrateGuestData(u)) setMigrated(true) } catch { /* transfert ultérieur */ }

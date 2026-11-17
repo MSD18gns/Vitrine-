@@ -29,3 +29,11 @@ export function frError(error) {
   if (m.includes('jwt') || m.includes('session')) return 'Ta session a expiré. Reconnecte-toi.'
   return error?.message || "Une erreur inattendue s'est produite."
 }
+
+// Toutes les tables et fonctions d'ANDOU DIINEMA sont préfixées « ad_ » :
+// le site peut ainsi partager un projet Supabase avec d'autres applications.
+export const DB_PREFIX = import.meta.env.VITE_DB_PREFIX ?? 'ad_'
+export const db = {
+  from: (table) => db.from(DB_PREFIX + table),
+  rpc: (fn, args) => db.rpc(DB_PREFIX + fn, args),
+}
