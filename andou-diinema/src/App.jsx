@@ -6,6 +6,7 @@ import MobileNavigation from './components/MobileNavigation'
 import { Spinner } from './components/ui'
 import ErrorBoundary from './components/ErrorBoundary'
 import { useProgress } from './hooks/useProgress'
+import { useAuth } from './hooks/useAuth'
 import { checkReminders } from './services/notifications'
 import Home from './pages/Home'
 
@@ -46,6 +47,12 @@ function ScrollTop() {
   return null
 }
 
+function DbBanner() {
+  const { user, dbReady } = useAuth()
+  if (!user || dbReady) return null
+  return <div className="bg-amber-50 px-4 py-2.5 text-center text-sm text-amber-900" role="status">Tu es connecté(e). La base de données est en cours d'installation : ta progression est enregistrée sur cet appareil et sera transférée automatiquement.</div>
+}
+
 function Reminders() {
   const { api } = useProgress()
   useEffect(() => {
@@ -66,6 +73,7 @@ export default function App() {
       <ScrollTop />
       <Reminders />
       <Header />
+      <DbBanner />
       <main id="contenu" className="pb-nav flex-1">
         <ErrorBoundary key={pathname}>
           <Suspense fallback={<Spinner />}>

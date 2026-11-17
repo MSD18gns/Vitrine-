@@ -7,14 +7,15 @@ import { api, getDriver } from '../services/progress'
 const ProgressContext = createContext(null)
 
 export function ProgressProvider({ children }) {
-  const { user, migrated } = useAuth()
+  const { user, migrated, dbReady } = useAuth()
   const [version, setVersion] = useState(0)
   const value = useMemo(() => ({
-    api: api(getDriver(user)),
-    isGuest: !user,
+    api: api(getDriver(user, dbReady)),
+    isGuest: !user || !dbReady,
+    dbMissing: !!user && !dbReady,
     version,
     bump: () => setVersion((v) => v + 1),
-  }), [user, version])
+  }), [user, dbReady, version])
   useEffect(() => { if (migrated) setVersion((v) => v + 1) }, [migrated])
   return createElement(ProgressContext.Provider, { value }, children)
 }

@@ -3,19 +3,17 @@
 //   - annonces / rappels publiés par l'équipe (table notifications)
 //   - rappels personnels (notification du navigateur, à l'ouverture du site)
 // =====================================================================
-import { supabase, isConfigured } from './supabase'
+import { isConfigured, rest, checkDbReady } from './supabase'
 import { store } from '../lib/storage'
 import { dayKey } from '../lib/dates'
 
 const READ = 'ad:notif-read'
 
 export async function fetchAnnouncements() {
-  if (!isConfigured) return []
-  const { data, error } = await supabase
-    .from('notifications').select('id, titre, message, lien, scheduled_at')
-    .eq('status', 'published').lte('scheduled_at', new Date().toISOString())
-    .order('scheduled_at', { ascending: false }).limit(20)
-  return error ? [] : data
+  if (!isConfigured || !(await checkDbReady())) return []
+  try {
+    return await rest.select('notifications', `select=id,titre,message,lien,scheduled_at&status=eq.published&scheduled_at=lte.${encodeURIComponent(new Date().toISOString())}&order=scheduled_at.desc&limit=20`)
+  } catch { return [] }
 }
 
 export const readIds = () => new Set(store.get(READ, []))

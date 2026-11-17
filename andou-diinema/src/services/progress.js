@@ -5,7 +5,7 @@
 //   - "remote" : compte connecté (Supabase, protégé par RLS)
 //  À la connexion, les données invitées sont transférées dans le compte.
 // =====================================================================
-import { supabase, frError , db } from './supabase'
+import { frError, db } from './supabase'
 import { store } from '../lib/storage'
 import { dayKey } from '../lib/dates'
 
@@ -94,11 +94,11 @@ const remote = (user) => ({
   async removeBookmark(b) { ok(await db.from('bookmarks').delete().eq('user_id', user.id).eq('item_type', b.item_type).eq('item_id', b.item_id)) },
 })
 
-export const getDriver = (user) => (user && supabase ? remote(user) : local)
+export const getDriver = (user, dbReady = true) => (user && dbReady ? remote(user) : local)
 
 // Transfert des données invitées vers le compte, une seule fois
 export async function migrateGuestData(user) {
-  if (!user || !supabase || !local.hasData()) return false
+  if (!user || !local.hasData()) return false
   const r = remote(user)
   const rows = local._rows()
   if (rows.length) {

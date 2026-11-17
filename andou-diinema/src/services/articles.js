@@ -5,7 +5,7 @@
 //  - Un contenu ARCHIVÉ en base est masqué du site.
 //  - Les nouveaux contenus publiés en base sont ajoutés.
 // =====================================================================
-import { supabase, isConfigured, frError , db } from './supabase'
+import { isConfigured, frError, rest, checkDbReady } from './supabase'
 import { store } from '../lib/storage'
 import { VERSETS, HADITHS, INVOCATIONS } from '../content/sources'
 import { CATEGORIES, ARTICLES } from '../content/peches'
@@ -68,30 +68,27 @@ export function mergeContent(db) {
 export const cachedDb = () => store.get(CACHE, null)
 
 export async function fetchDbContent() {
-  if (!isConfigured) return null
-  const pub = (t, cols = '*') => db.from(t).select(cols).eq('status', 'published')
+  if (!isConfigured || !(await checkDbReady())) return null
+  const pub = (t) => rest.select(t, 'select=*&status=eq.published')
   const [statuses, categories, articles, versets, hadiths, invocations, programme] = await Promise.all([
-    db.rpc('content_statuses'),
+    rest.rpc('content_statuses'),
     pub('categories'), pub('articles'), pub('quran_verses'), pub('hadiths'), pub('invocations'), pub('daily_programs'),
   ])
-  const all = { statuses, categories, articles, versets, hadiths, invocations, programme }
-  for (const [k, v] of Object.entries(all)) if (v.error) throw new Error(`${k} : ${frError(v.error)}`)
-  const db = Object.fromEntries(Object.entries(all).map(([k, v]) => [k, v.data]))
+  const db = { statuses, categories, articles, versets, hadiths, invocations, programme }
   store.set(CACHE, db)
   return db
 }
 
 export async function topArticles(limit = 5) {
-  if (!isConfigured) return []
-  const { data, error } = await db.rpc('top_articles', { p_limit: limit })
-  return error ? [] : data
+  if (!isConfigured || !(await checkDbReady())) return []
+  try { return await rest.rpc('top_articles', { p_limit: limit }) } catch { return [] }
 }
 
 export function countView(slug) {
   if (!isConfigured) return
   const k = `ad:viewed:${slug}`
   if (sessionStorageSafe(k)) return
-  db.rpc('increment_article_view', { p_slug: slug }).then(() => {}, () => {})
+  checkDbReady().then((ok) => ok && rest.rpc('increment_article_view', { p_slug: slug })).catch(() => {})
 }
 function sessionStorageSafe(k) {
   try { if (sessionStorage.getItem(k)) return true; sessionStorage.setItem(k, '1') } catch { /* ignore */ }
@@ -100,6 +97,6 @@ function sessionStorageSafe(k) {
 
 export async function sendContactMessage({ nom, email, message }) {
   if (!isConfigured) throw new Error('Le formulaire sera actif dès la configuration de la base de données. Écris-nous par e-mail en attendant.')
-  const { error } = await db.from('contact_messages').insert({ nom: nom.trim(), email: email.trim(), message: message.trim() })
-  if (error) throw new Error(frError(error))
+  if (!(await checkDbReady())) throw new Error('Le formulaire sera actif très bientôt. Écris-nous par e-mail en attendant.')
+  try { await rest.insert('contact_messages', { nom: nom.trim(), email: email.trim(), message: message.trim() }) } catch (e) { throw new Error(frError(e)) }
 }

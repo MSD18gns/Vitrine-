@@ -11,7 +11,7 @@ export default function Reinitialiser() {
   const nav = useNavigate()
   const [pw, setPw] = useState('')
   const [state, setState] = useState({})
-  if (loading) return <Spinner />
+  if (loading) return <Spinner label="Vérification du lien…" />
   const submit = async (e) => {
     e.preventDefault()
     const v = validatePassword(pw); if (v) return setState({ err: v })

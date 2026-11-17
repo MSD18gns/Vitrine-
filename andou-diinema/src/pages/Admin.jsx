@@ -5,7 +5,7 @@ import Seo from '../components/Seo'
 import { Alert, Spinner, EmptyState } from '../components/ui'
 import { useAuth } from '../hooks/useAuth'
 import { useContent } from '../hooks/useContent'
-import { supabase, frError , db } from '../services/supabase'
+import { frError, db } from '../services/supabase'
 import { VERSETS, HADITHS, INVOCATIONS } from '../content/sources'
 import { CATEGORIES, ARTICLES } from '../content/peches'
 import { PROGRAMME } from '../content/programme'
@@ -265,10 +265,25 @@ function Messages() {
 const TABS = [['stats', 'Statistiques'], ['articles', 'Articles'], ['categories', 'Catégories'], ['quran_verses', 'Versets'], ['hadiths', 'Hadiths'], ['invocations', 'Invocations'], ['daily_programs', 'Programme'], ['notifications', 'Rappels'], ['messages', 'Messages']]
 
 export default function Admin() {
-  const { user, loading, isStaff, isAdmin, can, roles, configured } = useAuth()
+  const { user, loading, isStaff, isAdmin, can, roles, configured, dbReady } = useAuth()
   const { categories, reload } = useContent()
   const [tab, setTab] = useState('stats')
   if (loading) return <Spinner />
+  if (user && !dbReady) {
+    return (
+      <div className="container-ad max-w-xl py-10">
+        <Seo title="Administration" noindex />
+        <h1 className="mb-4 text-2xl font-bold">Installer la base de données</h1>
+        <Alert type="warning">Les tables d'ANDOU DIINEMA (préfixe « ad_ ») ne sont pas encore installées dans Supabase.</Alert>
+        <ol className="mt-4 list-decimal space-y-2 pl-5 text-[15px] text-slate-700">
+          <li>Ouvre le tableau de bord Supabase → ton projet → <b>SQL Editor</b> → <b>New query</b>.</li>
+          <li>Colle le contenu du fichier <code>supabase/migrations/install_once.sql</code> du projet, puis clique sur <b>Run</b>.</li>
+          <li>Donne-toi le rôle administrateur : <code className="break-all">insert into public.ad_admin_roles (user_id, role) select id, 'admin' from auth.users where email = '{user.email}';</code></li>
+          <li>Recharge cette page, puis clique sur « Importer le contenu de base ».</li>
+        </ol>
+      </div>
+    )
+  }
   if (!configured || !user || !isStaff) {
     return (
       <div className="container-ad max-w-md py-12">
