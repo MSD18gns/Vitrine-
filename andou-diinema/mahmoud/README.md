@@ -19,6 +19,11 @@
 - Il ne recouvre jamais la barre d'action des étapes (il se place au-dessus, même quand le message de réponse s'agrandit).
 - La 3D se charge après l'affichage de la page ; **mode économie de données** → portrait 2D uniquement ; sans WebGL → portrait 2D.
 - Absent des pages de lecture (articles, hadiths, repentir…), pour ne pas gêner la lecture.
+- **Langues** : toutes les phrases de Mahmoud (réactions, conversation de la démo, suggestions, boutons, réglages)
+  existent en **français, wolof et pulaar** (`src/mahmoud/lines.js`) et suivent la langue choisie sur le site.
+  ⚠️ Wolof et pulaar : traductions de travail à faire relire par des locuteurs natifs.
+  Les navigateurs n'ont pas de voix wolof/pulaar : dans ces langues Mahmoud parle **par sous-titres** (bouche animée), la voix reste disponible en français.
+- Tests langues : `mahmoud/tests/langues.test.mjs` (16/16).
 - Tests : `mahmoud/tests/integration.test.mjs` (34/34), `demo.test.mjs` (20/20) ; tests existants du parcours (27/27) et des langues (13/13) inchangés.
 
 

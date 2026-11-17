@@ -5,6 +5,8 @@
 // Pas de hasard dans les réactions : les phrases tournent dans un ordre fixe, sans répétition
 // immédiate, et un même geste n'est pas rejoué trop souvent (il est alors remplacé).
 
+import { LINES, line } from './lines'
+
 export const GESTURES = ['Welcome', 'Explain', 'Point', 'Think', 'Listen', 'Nod', 'Celebrate', 'Encourage', 'Talk', 'Idle']
 
 export const EXPRESSIONS = {
@@ -19,33 +21,12 @@ export const EXPRESSIONS = {
 
 // Réactions par événement. `alt` : geste de remplacement si le geste principal vient d'être joué.
 const REACTIONS = {
-  'app:open': { gesture: 'Welcome', alt: 'Nod', expr: 'sourire', lines: [
-    'Assalamou alaykoum ! Je suis Mahmoud, ton compagnon de route.',
-    'Content de te revoir. On continue l\'ascension ensemble ?',
-  ] },
-  'lesson:start': { gesture: 'Explain', alt: 'Nod', expr: 'ecoute', lines: [
-    'On commence. Prends ton temps et lis tranquillement.',
-    'Nouvelle étape : je reste à côté de toi.',
-    'Installe-toi, cette étape est faite pour toi.',
-  ] },
-  'answer:correct': { gesture: 'Celebrate', alt: 'Nod', cooldown: 15, expr: 'joie', lines: [
-    'Bravo, c\'est juste !',
-    'Excellente réponse.',
-    'Bien vu, continue comme ça.',
-  ] },
-  'answer:wrong': { gesture: 'Encourage', alt: 'Nod', expr: 'compassion', lines: [
-    'Ce n\'est pas grave, on apprend aussi en se trompant.',
-    'Pas tout à fait. Relis l\'explication, tu vas y arriver.',
-    'Aucune pénalité ici : réessaie quand tu veux.',
-  ] },
-  'step:end': { gesture: 'Celebrate', alt: 'Encourage', cooldown: 10, expr: 'joie', lines: [
-    'Étape terminée, bravo ! Qu\'Allah te facilite la suite.',
-    'Encore un pas vers le sommet. Bien joué !',
-  ] },
-  help: { gesture: 'Point', alt: 'Explain', expr: 'ecoute', lines: [
-    'Besoin d\'aide ? Pose-moi ta question ou choisis une suggestion.',
-    'Je suis là. Dis-moi ce qui te bloque.',
-  ] },
+  'app:open': { gesture: 'Welcome', alt: 'Nod', expr: 'sourire' },
+  'lesson:start': { gesture: 'Explain', alt: 'Nod', expr: 'ecoute' },
+  'answer:correct': { gesture: 'Celebrate', alt: 'Nod', cooldown: 15, expr: 'joie' },
+  'answer:wrong': { gesture: 'Encourage', alt: 'Nod', expr: 'compassion' },
+  'step:end': { gesture: 'Celebrate', alt: 'Encourage', cooldown: 10, expr: 'joie' },
+  help: { gesture: 'Point', alt: 'Explain', expr: 'ecoute' },
   'chat:thinking': { gesture: null, loop: 'Think', expr: 'reflexion' },
   'chat:listening': { gesture: null, loop: 'Listen', expr: 'ecoute' },
 }
@@ -54,7 +35,7 @@ const REACTIONS = {
 // pas de célébration, pas de grands gestes, visage serein.
 const CALM_ALLOWED = new Set(['Nod', 'Listen', 'Idle'])
 
-export function createBehavior({ now = () => performance.now() / 1000 } = {}) {
+export function createBehavior({ now = () => performance.now() / 1000, lang = () => 'fr' } = {}) {
   const listeners = new Set()
   const cursor = {}
   const lastGesture = {}
@@ -64,11 +45,11 @@ export function createBehavior({ now = () => performance.now() / 1000 } = {}) {
   let last = null
   const emit = (r) => { if (r.type !== 'loop') last = { ...r, t: now() }; listeners.forEach((fn) => fn(r)) }
 
-  function nextLine(event, lines) {
-    if (!lines?.length) return null
+  function nextLine(event) {
+    if (!LINES.fr[event]) return null
     const i = cursor[event] ?? 0
-    cursor[event] = (i + 1) % lines.length
-    return lines[i]
+    cursor[event] = i + 1
+    return line(lang(), event, i)
   }
 
   function pickGesture(rx) {
@@ -105,7 +86,7 @@ export function createBehavior({ now = () => performance.now() / 1000 } = {}) {
         gesture: pickGesture(rx),
         loop: rx.loop || null,
         expr: calm ? 'calme' : rx.expr,
-        line: ctx.line ?? (ctx.silent ? null : nextLine(event, rx.lines)),
+        line: ctx.line ?? (ctx.silent ? null : nextLine(event)),
       }
       emit(r)
       return r

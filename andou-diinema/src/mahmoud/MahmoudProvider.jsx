@@ -5,6 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { useLocation } from 'react-router-dom'
 import { useMahmoud } from './index'
 import MahmoudCompanion from './MahmoudCompanion'
+import { useT } from '../i18n'
 
 const Ctx = createContext({ react: () => {}, enabled: false, setEnabled: () => {}, voice: false, setVoice: () => {} })
 const KEY_ON = 'ad:mahmoud-on', KEY_VOICE = 'ad:mahmoud-voice'
@@ -15,25 +16,26 @@ const write = (k, v) => { try { localStorage.setItem(k, v ? '1' : '0') } catch {
 const ROUTES = [/^\/$/, /^\/parcours$/, /^\/parcours\/etape\/[^/]+$/]
 
 export function MahmoudProvider({ children }) {
-  const controller = useMahmoud()
+  const { lang } = useT()
+  const controller = useMahmoud(lang)
   const [enabled, setEnabledState] = useState(() => read(KEY_ON, true))
   const [voice, setVoiceState] = useState(() => read(KEY_VOICE, false))
   const setEnabled = useCallback((v) => { setEnabledState(v); write(KEY_ON, v); if (!v) controller.stop() }, [controller])
   const setVoice = useCallback((v) => { setVoiceState(v); write(KEY_VOICE, v) }, [])
   const { react: rx } = controller
   const react = useCallback((event, ctx = {}) => (enabled ? rx(event, { voice, ...ctx }) : null), [enabled, voice, rx])
-  const value = useMemo(() => ({ react, enabled, setEnabled, voice, setVoice, controller }), [react, enabled, setEnabled, voice, setVoice, controller])
+  const value = useMemo(() => ({ react, enabled, setEnabled, voice, setVoice, controller, lang }), [react, enabled, setEnabled, voice, setVoice, controller, lang])
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 
 /** Fonction pour signaler un événement à Mahmoud (sans effet s'il est masqué). */
 export function useMahmoudEvents() { return useContext(Ctx).react }
-export function useMahmoudSettings() { const c = useContext(Ctx); return { enabled: c.enabled, setEnabled: c.setEnabled, voice: c.voice, setVoice: c.setVoice } }
+export function useMahmoudSettings() { const c = useContext(Ctx); return { enabled: c.enabled, setEnabled: c.setEnabled, voice: c.voice, setVoice: c.setVoice, lang: c.lang } }
 
 /** Le compagnon flottant, affiché seulement sur les pages prévues. Démarre après le chargement de la page. */
 export function MahmoudDock() {
   const { pathname } = useLocation()
-  const { controller, enabled, voice, setVoice, react } = useContext(Ctx)
+  const { controller, enabled, voice, setVoice, react, lang } = useContext(Ctx)
   const [idle, setIdle] = useState(false)
   useEffect(() => {
     const go = () => setIdle(true)
@@ -47,6 +49,7 @@ export function MahmoudDock() {
   return (
     <MahmoudCompanion
       controller={controller}
+      lang={lang}
       voice={voice}
       onVoice={setVoice}
       onTap={() => react('help')}

@@ -20,8 +20,9 @@ export const saveData = () => { try { const c = navigator.connection; return !!(
 const prefersReducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
 /** Contrôleur unique : moteur de comportement + voix + état partagé avec la 3D. */
-export function useMahmoud() {
-  const behavior = useMemo(() => createBehavior(), [])
+export function useMahmoud(lang = 'fr') {
+  const langRef = useRef(lang); langRef.current = lang
+  const behavior = useMemo(() => createBehavior({ lang: () => langRef.current }), [])
   const live = useRef({ visemes: {} })
   const [caption, setCaption] = useState('')
   const [speaking, setSpeaking] = useState(false)
@@ -36,11 +37,12 @@ export function useMahmoud() {
   /** Faire réagir Mahmoud à un événement (et dire la phrase associée). */
   const react = useCallback((event, ctx = {}) => {
     const r = behavior.dispatch(event, ctx)
-    if (r?.line) speaker.speak(r.line, { voice: ctx.voice ?? false })
+    // pas de voix wolof/pulaar dans les navigateurs : sous-titres + bouche animée
+    if (r?.line) speaker.speak(r.line, { voice: (ctx.voice ?? false) && langRef.current === 'fr' })
     return r
   }, [behavior, speaker])
 
-  const say = useCallback((text, { voice = false } = {}) => { setCaption(text); speaker.speak(text, { voice }) }, [speaker])
+  const say = useCallback((text, { voice = false } = {}) => { setCaption(text); speaker.speak(text, { voice: voice && langRef.current === 'fr' }) }, [speaker])
   const stop = useCallback(() => speaker.cancel(), [speaker])
   return { behavior, live, speaker, react, say, stop, caption, speaking }
 }

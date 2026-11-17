@@ -9,6 +9,7 @@ import { signOut, updateProfile, deleteAccount } from '../services/auth'
 import LanguageSwitcher, { LanguageNotice } from '../components/LanguageSwitcher'
 import { useT } from '../i18n'
 import { useMahmoudSettings } from '../mahmoud/MahmoudProvider'
+import { ui } from '../mahmoud/lines'
 import { DEFAULT_PREFS, askPermission, permission, testNotification, notificationsSupported } from '../services/notifications'
 
 const LABELS = { programme: 'Prochaine étape du parcours', dhikr: 'Moment de dhikr', bilan: 'Bilan du soir' }
@@ -28,17 +29,18 @@ function ModeSobre() {
 }
 
 function ReglageMahmoud() {
-  const { enabled, setEnabled, voice, setVoice } = useMahmoudSettings()
+  const { enabled, setEnabled, voice, setVoice, lang } = useMahmoudSettings()
+  const L = ui(lang)
   return (
     <div className="card divide-y divide-slate-100">
       <label className="flex cursor-pointer items-center gap-3 p-4">
         <span className="emoji text-xl">🧕🏽</span>
-        <span className="flex-1"><span className="block font-semibold text-slate-900">Mahmoud, compagnon 3D</span><span className="text-sm text-slate-500">Il t'accompagne sur l'accueil, le parcours et les étapes. Réponses prédéfinies, pas d'intelligence artificielle.</span></span>
+        <span className="flex-1"><span className="block font-semibold text-slate-900">{L.setTitle}</span><span className="text-sm text-slate-500">{L.setSub}</span></span>
         <input type="checkbox" checked={enabled} onChange={() => setEnabled(!enabled)} className="h-6 w-6 accent-brand-deep" />
       </label>
       <label className={`flex cursor-pointer items-center gap-3 p-4 ${enabled ? '' : 'opacity-50'}`}>
         <span className="emoji text-xl">🔊</span>
-        <span className="flex-1"><span className="block font-semibold text-slate-900">Voix de Mahmoud</span><span className="text-sm text-slate-500">Utilise la voix de ton appareil.</span></span>
+        <span className="flex-1"><span className="block font-semibold text-slate-900">{L.voiceTitle}</span><span className="text-sm text-slate-500">{L.voiceSub}{lang !== 'fr' && <> {L.voiceFrOnly}</>}</span></span>
         <input type="checkbox" checked={voice} disabled={!enabled} onChange={() => setVoice(!voice)} className="h-6 w-6 accent-brand-deep" />
       </label>
     </div>

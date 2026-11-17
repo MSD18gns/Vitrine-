@@ -8,7 +8,8 @@ import MahmoudCompanion from '../mahmoud/MahmoudCompanion'
 import { EXPRESSIONS } from '../mahmoud/behavior'
 import { MODELES } from '../mahmoud/outfits'
 import { createListener, speechSupport } from '../mahmoud/speech'
-import { localReply, SUGGESTIONS } from '../mahmoud/replies'
+import { localReply, suggestions } from '../mahmoud/replies'
+import { useT } from '../i18n'
 
 const EVENTS = [
   ['app:open', '👋 Ouverture de l\'app'],
@@ -23,7 +24,8 @@ const EXPR_LABELS = { neutre: 'Neutre', sourire: 'Sourire', joie: 'Joie', ecoute
 const LOOPS = new Set(['Talk', 'Idle', 'Listen', 'Think'])
 
 export default function LaboMahmoud() {
-  const m = useMahmoud()
+  const { lang } = useT()
+  const m = useMahmoud(lang)
   const [voice, setVoice] = useState(false)
   const [calm, setCalm] = useState(false)
   const [framing, setFraming] = useState('buste')
@@ -47,14 +49,14 @@ export default function LaboMahmoud() {
     setChat((c) => [...c, { from: 'moi', text }]); setInput('')
     m.react('chat:thinking', { silent: true })
     setTimeout(() => {
-      const r = localReply(text)
+      const r = localReply(text, lang)
       setChat((c) => [...c, { from: 'mahmoud', text: r.reply, local: true }])
       m.behavior.setLoop('Idle')
       // geste + expression propres à la réponse (le mode calme reste prioritaire)
       directReact(m, { type: 'reaction', gesture: calm ? 'Nod' : r.gesture, expr: calm ? 'calme' : r.expr })
       m.say(r.reply, { voice })
     }, 700)
-  }, [m, voice, calm])
+  }, [m, voice, calm, lang])
 
   const toggleMic = () => {
     if (micState === 'listening') { listener.current?.stop(); return }
@@ -145,7 +147,7 @@ export default function LaboMahmoud() {
                 ))}
               </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
-                {SUGGESTIONS.map((s) => <button key={s} type="button" onClick={() => ask(s)} className="rounded-full bg-brand-mist px-2.5 py-1 text-xs font-semibold text-brand-deep">{s}</button>)}
+                {suggestions(lang).map((s) => <button key={s} type="button" onClick={() => ask(s)} className="rounded-full bg-brand-mist px-2.5 py-1 text-xs font-semibold text-brand-deep">{s}</button>)}
               </div>
               <form className="mt-2 flex gap-2" onSubmit={(e) => { e.preventDefault(); ask(input) }}>
                 <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Écris ta question…" className="min-h-[44px] flex-1 rounded-2xl border border-slate-200 px-3 text-[15px]" aria-label="Question pour Mahmoud" />
@@ -170,8 +172,9 @@ export default function LaboMahmoud() {
 function directReact(m, r) { m.behavior.emitDirect(r) }
 
 function MahmoudCompanionDemo() { // compagnon autonome (son propre contrôleur)
-  const c = useMahmoud()
+  const { lang } = useT()
+  const c = useMahmoud(lang)
   const first = useRef(c)
   useEffect(() => { const t = setTimeout(() => first.current.react('help'), 1200); return () => clearTimeout(t) }, [])
-  return <MahmoudCompanion controller={c} onTap={() => c.react('help')} />
+  return <MahmoudCompanion lang={lang} controller={c} onTap={() => c.react('help')} />
 }
