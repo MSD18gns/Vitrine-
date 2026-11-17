@@ -10,7 +10,14 @@ import { useAuth } from './hooks/useAuth'
 import { checkReminders } from './services/notifications'
 import Home from './pages/Home'
 
-const p = (f) => lazy(f)
+// Après une mise à jour du site, une page ouverte peut demander un fichier
+// de l'ancienne version : on recharge alors la page une seule fois.
+const p = (f) => lazy(() => f().then((m) => { try { sessionStorage.removeItem('ad:chunk-reload') } catch { /* ignore */ } return m }).catch((e) => {
+  let again = false
+  try { again = !sessionStorage.getItem('ad:chunk-reload'); sessionStorage.setItem('ad:chunk-reload', '1') } catch { /* ignore */ }
+  if (again) { window.location.reload(); return new Promise(() => {}) }
+  throw e
+}))
 const Decouvrir = p(() => import('./pages/Decouvrir'))
 const Peches = p(() => import('./pages/Peches'))
 const Categorie = p(() => import('./pages/Categorie'))
