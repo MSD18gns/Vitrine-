@@ -8,6 +8,7 @@ import { useProgress } from '../hooks/useProgress'
 import { signOut, updateProfile, deleteAccount } from '../services/auth'
 import LanguageSwitcher, { LanguageNotice } from '../components/LanguageSwitcher'
 import { useT } from '../i18n'
+import { useMahmoudSettings } from '../mahmoud/MahmoudProvider'
 import { DEFAULT_PREFS, askPermission, permission, testNotification, notificationsSupported } from '../services/notifications'
 
 const LABELS = { programme: 'Prochaine étape du parcours', dhikr: 'Moment de dhikr', bilan: 'Bilan du soir' }
@@ -23,6 +24,24 @@ function ModeSobre() {
       <span className="flex-1"><span className="block font-semibold text-slate-900">Mode sobre</span><span className="text-sm text-slate-500">Masquer XP, niveaux et séries. Le parcours reste identique.</span></span>
       <input type="checkbox" checked={sobre} onChange={toggle} className="h-6 w-6 accent-brand-deep" />
     </label>
+  )
+}
+
+function ReglageMahmoud() {
+  const { enabled, setEnabled, voice, setVoice } = useMahmoudSettings()
+  return (
+    <div className="card divide-y divide-slate-100">
+      <label className="flex cursor-pointer items-center gap-3 p-4">
+        <span className="emoji text-xl">🧕🏽</span>
+        <span className="flex-1"><span className="block font-semibold text-slate-900">Mahmoud, compagnon 3D</span><span className="text-sm text-slate-500">Il t'accompagne sur l'accueil, le parcours et les étapes. Réponses prédéfinies, pas d'intelligence artificielle.</span></span>
+        <input type="checkbox" checked={enabled} onChange={() => setEnabled(!enabled)} className="h-6 w-6 accent-brand-deep" />
+      </label>
+      <label className={`flex cursor-pointer items-center gap-3 p-4 ${enabled ? '' : 'opacity-50'}`}>
+        <span className="emoji text-xl">🔊</span>
+        <span className="flex-1"><span className="block font-semibold text-slate-900">Voix de Mahmoud</span><span className="text-sm text-slate-500">Utilise la voix de ton appareil.</span></span>
+        <input type="checkbox" checked={voice} disabled={!enabled} onChange={() => setVoice(!voice)} className="h-6 w-6 accent-brand-deep" />
+      </label>
+    </div>
   )
 }
 
@@ -120,6 +139,7 @@ export default function Profil() {
           <div className="grid gap-2">
             {[['/recompenses', 'Mes récompenses', 'Niveau, badges, historique', Trophy], ['/suivi', 'Mon suivi', 'Prières, dhikr, objectifs, bilans', Activity]].map(([to, t, d, I]) => <Link key={to} to={to} className="tap card flex items-center gap-3 p-4"><span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-light text-brand-deep"><I size={20} /></span><span className="flex-1"><span className="block font-semibold text-slate-900">{t}</span><span className="text-sm text-slate-500">{d}</span></span><ChevronRight size={18} className="text-slate-400" /></Link>)}
             <ModeSobre />
+            <ReglageMahmoud />
           </div>
         </Section>
 

@@ -15,6 +15,8 @@ export function hasWebGL() {
   } catch { return false }
 }
 
+export const saveData = () => { try { const c = navigator.connection; return !!(c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || ''))) } catch { return false } }
+
 const prefersReducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
 /** Contrôleur unique : moteur de comportement + voix + état partagé avec la 3D. */
@@ -59,13 +61,13 @@ export function MahmoudPortrait({ outfitId = DEFAULT_OUTFIT, portrait, className
  * Pause automatique hors écran et quand l'onglet est masqué. Portrait 2D si WebGL absent
  * ou en cas d'erreur de chargement.
  */
-export default function Mahmoud({ controller, outfitId = DEFAULT_OUTFIT, src, portrait: portraitSrc, framing = 'buste', className = '', forceFallback = false, onStatus }) {
+export default function Mahmoud({ controller, outfitId = DEFAULT_OUTFIT, src, portrait: portraitSrc, framing = 'buste', className = '', forceFallback = false, paused = false, onStatus }) {
   const box = useRef(null)
   const [visible, setVisible] = useState(false)
   const [pageVisible, setPageVisible] = useState(() => typeof document === 'undefined' || !document.hidden)
   const [seen, setSeen] = useState(false)
   const [ready, setReady] = useState(false)
-  const webgl = useMemo(() => !forceFallback && hasWebGL(), [forceFallback])
+  const webgl = useMemo(() => !forceFallback && !saveData() && hasWebGL(), [forceFallback])
   const reduced = useMemo(prefersReducedMotion, [])
 
   useEffect(() => {
@@ -77,7 +79,7 @@ export default function Mahmoud({ controller, outfitId = DEFAULT_OUTFIT, src, po
     const f = () => setPageVisible(!document.hidden)
     document.addEventListener('visibilitychange', f); return () => document.removeEventListener('visibilitychange', f)
   }, [])
-  useEffect(() => { onStatus?.({ webgl, ready, active: visible && pageVisible }) }, [webgl, ready, visible, pageVisible, onStatus])
+  useEffect(() => { onStatus?.({ webgl, ready, active: visible && pageVisible && !paused }) }, [webgl, ready, visible, pageVisible, paused, onStatus])
   const onReady = useCallback(() => setReady(true), [])
 
   const portrait = <MahmoudPortrait outfitId={outfitId} portrait={portraitSrc} />
@@ -88,7 +90,7 @@ export default function Mahmoud({ controller, outfitId = DEFAULT_OUTFIT, src, po
         <GLBoundary fallback={portrait} onError={() => onStatus?.({ webgl: false, error: true })}>
           <Suspense fallback={null}>
             <div className={`absolute inset-0 transition-opacity duration-500 ${ready ? 'opacity-100' : 'opacity-0'}`}>
-              <Mahmoud3D outfitId={outfitId} src={src} behavior={controller.behavior} live={controller.live} active={visible && pageVisible} framing={framing} reducedMotion={reduced} onReady={onReady} />
+              <Mahmoud3D outfitId={outfitId} src={src} behavior={controller.behavior} live={controller.live} active={visible && pageVisible && !paused} framing={framing} reducedMotion={reduced} onReady={onReady} />
             </div>
           </Suspense>
         </GLBoundary>

@@ -65,11 +65,13 @@ function Character({ url, behavior, live, reducedMotion, onReady, onEyes }) {
       gesture.fadeOut(0.45); base.enabled = true; base.reset().fadeIn(0.45).play(); gesture = null
     }
     mixer.addEventListener('finished', onFinished)
-    const unsub = behavior.subscribe((r) => {
+    const apply = (r) => {
       if (r.expr) state.current.expr = EXPRESSIONS[r.expr] || {}
       if (r.loop) setLoop(r.loop)
       if (r.gesture) play(r.gesture)
-    })
+    }
+    const unsub = behavior.subscribe(apply)
+    if (behavior.recent) apply(behavior.recent)
     // hauteur des yeux → cadrage automatique (v1 et v2 n'ont pas la même taille)
     root.updateMatrixWorld(true)
     const v = new THREE.Vector3(); let ez = 0

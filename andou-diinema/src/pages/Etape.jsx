@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMahmoudEvents } from '../mahmoud/MahmoudProvider'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { X, Check, BookOpen, Trophy, ArrowRight, Heart } from 'lucide-react'
 import Seo from '../components/Seo'
@@ -47,6 +48,9 @@ function burst(list = ['✨', '🎉', '💚', '⭐', '🌟']) {
   }
 }
 
+const STEP_IDS = ['lecture', 'verset', 'hadith', 'quiz', 'reflexion', 'mission', 'invocation', 'bilan']
+const SACRES = new Set(['verset', 'hadith', 'invocation'])
+
 export default function Etape() {
   const { id } = useParams()
   const nav = useNavigate()
@@ -64,6 +68,15 @@ export default function Etape() {
   const [fin, setFin] = useState(null)
   const [err, setErr] = useState(null)
   const before = useRef(null)
+  const mahmoud = useMahmoudEvents()
+
+  // Mahmoud : début de leçon, mode calme pendant le verset, le hadith et l'invocation
+  useEffect(() => {
+    if (loading || !etape || fin) return
+    const c = STEP_IDS[step]
+    if (SACRES.has(c)) mahmoud('sacred:start')
+    else { mahmoud('sacred:end'); if (step === 0) mahmoud('lesson:start') }
+  }, [step, loading, id, fin]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const seed = useMemo(() => (etape ? indexEtape(etape.id) + 1 : 1), [etape])
   useEffect(() => { if (!loading && !before.current) before.current = { badges: new Set(stats.badges), faites: new Set(stats.faites) } }, [loading, stats])
@@ -89,7 +102,7 @@ export default function Etape() {
   const options = shuffle(etape.quiz.o, seed)
   const I = iconFor(etape.icon)
 
-  const STEPS = ['lecture', 'verset', 'hadith', 'quiz', 'reflexion', 'mission', 'invocation', 'bilan']
+  const STEPS = STEP_IDS
   const cur = STEPS[step]
   const pct = fin ? 100 : Math.round((step / STEPS.length) * 100)
 
@@ -97,6 +110,7 @@ export default function Etape() {
   const verifier = () => {
     const ok = choix === 0
     setVerdict(ok ? 'ok' : 'ko'); setEssais((n) => n + 1)
+    mahmoud(ok ? 'answer:correct' : 'answer:wrong')
     if (ok) burst(essais === 0 ? ['🎉', '⭐', '✨', '💎', '🌟'] : ['✨', '💚', '👏', '🌿'])
     if (navigator.vibrate) navigator.vibrate(ok ? 30 : [20, 40, 20])
   }
@@ -107,6 +121,7 @@ export default function Etape() {
     try {
       await api.completeLesson(etape.id, { parfait, reflexion: reflexion.trim(), ressenti })
       setFin({ xp: premiere ? XP.etape + (parfait ? XP.quizParfait : 0) : XP.revision, premiere, parfait })
+      mahmoud('step:end')
       bump()
     } catch (e) { setErr(e.message) }
   }
@@ -270,7 +285,7 @@ export default function Etape() {
       </div></div>
 
       {/* Barre d'action fixe (pouce) */}
-      <div className={`fixed inset-x-0 bottom-0 z-[60] border-t-2 ${verdict === 'ok' && cur === 'quiz' ? 'border-emerald-200 bg-emerald-50' : verdict === 'ko' && cur === 'quiz' ? 'border-amber-200 bg-amber-50' : 'border-slate-100 bg-white'}`} style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
+      <div id="etape-actions" className={`fixed inset-x-0 bottom-0 z-[60] border-t-2 ${verdict === 'ok' && cur === 'quiz' ? 'border-emerald-200 bg-emerald-50' : verdict === 'ko' && cur === 'quiz' ? 'border-amber-200 bg-amber-50' : 'border-slate-100 bg-white'}`} style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
         <div className="container-ad max-w-xl pt-3">
           {cur === 'quiz' && verdict === 'ok' && <div className="rise mb-3 flex gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-500 text-white"><Check size={22} strokeWidth={3} /></span><div><p className="font-extrabold text-emerald-800">{t(essais === 1 ? 'step.okFirst' : 'step.ok')}</p><p className="text-sm text-emerald-900/80">{etape.quiz.e}</p></div></div>}
           {cur === 'quiz' && verdict === 'ko' && <div className="rise mb-3 flex gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-amber-400 text-white"><Heart size={20} /></span><div><p className="font-extrabold text-amber-800">{t('step.ko')}</p><p className="text-sm text-amber-900/80">{t('step.koSub')}</p></div></div>}

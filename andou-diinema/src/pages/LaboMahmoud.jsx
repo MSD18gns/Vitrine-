@@ -173,5 +173,5 @@ function MahmoudCompanionDemo() { // compagnon autonome (son propre contrôleur)
   const c = useMahmoud()
   const first = useRef(c)
   useEffect(() => { const t = setTimeout(() => first.current.react('help'), 1200); return () => clearTimeout(t) }, [])
-  return <MahmoudCompanion controller={c} />
+  return <MahmoudCompanion controller={c} onTap={() => c.react('help')} />
 }

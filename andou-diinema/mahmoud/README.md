@@ -1,7 +1,26 @@
 # Mahmoud — compagnon 3D d'ANDOU DIINEMA (prototype, tenue verte)
 
-> Statut : **prototype à valider**. Aucune intégration dans les pages du site.
-> Démo indépendante : `/labo/mahmoud` (non indexée, non reliée au menu).
+> Statut : **intégré au site** (Accueil, Parcours, Étapes). Démo complète : `/labo/mahmoud` (non indexée).
+
+## Intégration dans le site
+
+| Page | Réaction de Mahmoud |
+|---|---|
+| Accueil | Bienvenue (une fois par visite) |
+| Étape — leçon | « On commence… » |
+| Étape — verset, hadith, invocation | **Mode calme** (aucun grand geste, visage serein) |
+| Étape — quiz | Bonne réponse → félicitations ; mauvaise → encouragement (aucune pénalité) |
+| Étape — fin | Félicitations |
+| Toucher Mahmoud | Proposition d'aide |
+
+- Fichiers : `src/mahmoud/MahmoudProvider.jsx` (contexte partagé + compagnon), appels `useMahmoudEvents()` dans `Home.jsx` et `Etape.jsx`, réglages dans `Profil.jsx`.
+- **Mobile** : Mahmoud est rangé en médaillon et ne s'agrandit que lorsqu'il réagit ou parle (puis se range seul) ;
+  sur ordinateur il reste ouvert. Bouton Réduire, bouton Voix (coupée par défaut), réglage « Mahmoud, compagnon 3D » dans le Profil pour le masquer.
+- Il ne recouvre jamais la barre d'action des étapes (il se place au-dessus, même quand le message de réponse s'agrandit).
+- La 3D se charge après l'affichage de la page ; **mode économie de données** → portrait 2D uniquement ; sans WebGL → portrait 2D.
+- Absent des pages de lecture (articles, hadiths, repentir…), pour ne pas gêner la lecture.
+- Tests : `mahmoud/tests/integration.test.mjs` (34/34), `demo.test.mjs` (20/20) ; tests existants du parcours (27/27) et des langues (13/13) inchangés.
+
 
 Outils utilisés, tous gratuits et locaux : Blender 5.3 (module Python `bpy`), three.js 0.170,
 React Three Fiber 8.18 (React 18.3 conservé), Drei 9.122, gltf-transform 4.5, Web Speech API,

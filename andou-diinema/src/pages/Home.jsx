@@ -14,6 +14,8 @@ import { messageSerie } from '../services/gamification'
 import { dayOfYear, hijriToday } from '../lib/dates'
 import { useT } from '../i18n'
 import { LanguageNotice } from '../components/LanguageSwitcher'
+import { useEffect } from 'react'
+import { useMahmoudEvents } from '../mahmoud/MahmoudProvider'
 
 const HADITH_JOUR = ['peches-meprises', 'repentants', 'point-noir', 'main-tendue', 'regularite', 'laisse-pour-allah', 'montagne', 'joie-repentir', 'deux-bienfaits', 'bien-ou-silence']
 
@@ -43,6 +45,12 @@ export default function Home() {
   const debutant = stats.etapesFaites === 0
   const sujet = articles[dayOfYear() % articles.length]
   const pct = Math.round((stats.etapesFaites / ETAPES.length) * 100)
+  const mahmoud = useMahmoudEvents()
+  useEffect(() => {
+    try { if (sessionStorage.getItem('ad:mahmoud-hello')) return; sessionStorage.setItem('ad:mahmoud-hello', '1') } catch { /* ignore */ }
+    const t = setTimeout(() => mahmoud('app:open'), 1500)
+    return () => clearTimeout(t)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>

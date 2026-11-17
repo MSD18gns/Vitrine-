@@ -102,8 +102,8 @@ const b = await chromium.launch()
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 } })
   const p = await ctx.newPage(); const js = []
   p.on('request', (r) => { if (/Mahmoud3D|mahmoud\.glb/.test(r.url())) js.push(r.url()) })
-  for (const r of ['/', '/parcours', '/parcours/etape/relations', '/peches']) { await p.goto(`${BASE}${r}`); await p.waitForTimeout(800) }
-  ok('Pages existantes : aucune ressource Mahmoud chargée', js.length === 0, js.join(','))
+  for (const r of ['/peches', '/hadiths', '/repentir']) { await p.goto(`${BASE}${r}`); await p.waitForTimeout(800) }
+  ok('Pages de lecture (péchés, hadiths, repentir) : aucune ressource Mahmoud chargée', js.length === 0, js.join(','))
   await ctx.close()
 }
 await b.close()

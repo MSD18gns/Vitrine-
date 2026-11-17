@@ -61,7 +61,8 @@ export function createBehavior({ now = () => performance.now() / 1000 } = {}) {
   let calm = false
   let loop = 'Idle'
 
-  const emit = (r) => listeners.forEach((fn) => fn(r))
+  let last = null
+  const emit = (r) => { if (r.type !== 'loop') last = { ...r, t: now() }; listeners.forEach((fn) => fn(r)) }
 
   function nextLine(event, lines) {
     if (!lines?.length) return null
@@ -82,6 +83,8 @@ export function createBehavior({ now = () => performance.now() / 1000 } = {}) {
 
   return {
     subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn) },
+    /** Dernière réaction si elle date de moins de 5 s (pour la 3D qui se charge après l'événement). */
+    get recent() { return last && now() - last.t < 5 ? last : null },
     get calm() { return calm },
     setCalm(v) {
       calm = !!v

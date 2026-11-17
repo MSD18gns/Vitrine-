@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect } from 'react'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Header from './components/Header'
 import Footer from './components/Footer'
+import { MahmoudProvider, MahmoudDock } from './mahmoud/MahmoudProvider'
 import MobileNavigation from './components/MobileNavigation'
 import { Spinner } from './components/ui'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -79,6 +80,7 @@ function Reminders() {
 export default function App() {
   const { pathname } = useLocation()
   return (
+    <MahmoudProvider>
     <div className="flex min-h-screen flex-col overflow-x-clip">
       <a href="#contenu" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:rounded-xl focus:bg-white focus:p-3">Aller au contenu</a>
       <ScrollTop />
@@ -130,6 +132,8 @@ export default function App() {
       </main>
       {!pathname.startsWith('/parcours') && <Footer />}
       <MobileNavigation />
+      <MahmoudDock />
     </div>
+    </MahmoudProvider>
   )
 }
