@@ -1,0 +1,37 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#e9f3ee}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script></head>
+<body><script type="module">
+// Visionneuse de contrôle (captures de validation) — non utilisée par le site.
+import * as THREE from 'three'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
+const q = new URLSearchParams(location.search)
+const W = +q.get('w') || 640, H = +q.get('h') || 800
+const r = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true, alpha: true })
+r.setSize(W, H); r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05
+document.body.appendChild(r.domElement)
+const s = new THREE.Scene(); s.background = q.get('bg') === 'none' ? null : new THREE.Color(q.get('bg') || '#e9f3ee')
+s.environment = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture
+s.environmentIntensity = 0.55
+const key = new THREE.DirectionalLight(0xfff4e6, 2.2); key.position.set(-1.5, 2.5, 3); s.add(key)
+const rim = new THREE.DirectionalLight(0xbfffe0, 1.2); rim.position.set(2, 2, -2); s.add(rim)
+s.add(new THREE.HemisphereLight(0xffffff, 0x2a4a3a, 0.6))
+const cam = new THREE.PerspectiveCamera(+q.get('fov') || 30, W / H, 0.05, 50)
+const view = q.get('view') || 'full'
+const az = (+q.get('az') || 0) * Math.PI / 180
+const tgt = view === 'face' ? new THREE.Vector3(0, 1.53, 0) : view === 'bust' ? new THREE.Vector3(0, 1.35, 0) : new THREE.Vector3(0, 0.88, 0)
+const dist = view === 'face' ? 0.75 : view === 'bust' ? 1.6 : 4.2
+cam.position.set(Math.sin(az) * dist, tgt.y + (view === 'full' ? 0.15 : 0.02), Math.cos(az) * dist); cam.lookAt(tgt)
+new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(q.get('src') || '/mahmoud/dist/mahmoud_raw.glb', (g) => {
+  s.add(g.scene)
+  const info = { anims: g.animations.map(a => a.name), morphs: {} }
+  g.scene.traverse(o => { if (o.morphTargetDictionary) info.morphs[o.name] = Object.keys(o.morphTargetDictionary) })
+  const mix = new THREE.AnimationMixer(g.scene)
+  const an = q.get('anim')
+  if (an) { const c = g.animations.find(a => a.name === an); if (c) { mix.clipAction(c).play(); mix.setTime(+q.get('t') || 0) } }
+  const m = q.get('morph')
+  if (m) for (const kv of m.split(',')) { const [k, v] = kv.split(':'); g.scene.traverse(o => { if (o.morphTargetDictionary && k in o.morphTargetDictionary) o.morphTargetInfluences[o.morphTargetDictionary[k]] = +v }) }
+  r.render(s, cam); window.INFO = info; window.READY = true
+}, undefined, (e) => { window.ERR = String(e); window.READY = true })
+</script></body></html>

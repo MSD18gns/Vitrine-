@@ -37,6 +37,7 @@ const Dashboard = p(() => import('./pages/Dashboard'))
 const Parcours = p(() => import('./pages/Parcours'))
 const Etape = p(() => import('./pages/Etape'))
 const Recompenses = p(() => import('./pages/Recompenses'))
+const LaboMahmoud = p(() => import('./pages/LaboMahmoud'))
 const Favoris = p(() => import('./pages/Favoris'))
 const Profil = p(() => import('./pages/Profil'))
 const Login = p(() => import('./pages/Login'))
@@ -121,6 +122,7 @@ export default function App() {
               <Route path="/confidentialite" element={<Legal page="confidentialite" />} />
               <Route path="/conditions" element={<Legal page="conditions" />} />
               <Route path="/a-propos" element={<APropos />} />
+              <Route path="/labo/mahmoud" element={<LaboMahmoud />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
