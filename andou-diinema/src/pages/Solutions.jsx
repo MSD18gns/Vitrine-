@@ -10,7 +10,7 @@ export default function Solutions() {
   return (
     <>
       <Seo title="Comment sortir des péchés" description="Une méthode concrète en 9 étapes pour abandonner les mauvaises habitudes, avec des guides pratiques et des exemples." />
-      <PageHeader eyebrow="Changer" title="Comment sortir des péchés" subtitle="Une méthode concrète en 9 étapes, avec des guides et des exemples, pour abandonner les mauvaises habitudes avec l'aide d'Allah." />
+      <PageHeader emoji="🛟" eyebrow="Changer" title="Comment sortir des péchés" subtitle="Une méthode concrète en 9 étapes, avec des guides et des exemples, pour abandonner les mauvaises habitudes avec l'aide d'Allah." />
       <div className="container-ad max-w-3xl">
         <div className="-mt-5 relative flex justify-end rounded-2xl bg-white p-1 shadow-card"><ShareButton title="Comment sortir des péchés" path="/sortir-des-peches" /></div>
         <Section title="La méthode en 9 étapes">

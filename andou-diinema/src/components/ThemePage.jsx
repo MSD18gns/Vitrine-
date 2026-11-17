@@ -35,7 +35,7 @@ export default function ThemePage({ id, path, children, eyebrow }) {
   return (
     <>
       <Seo title={t.titre} description={t.sousTitre + ' ' + t.intro.slice(0, 100)} />
-      <PageHeader eyebrow={eyebrow} title={t.titre} subtitle={t.sousTitre} />
+      <PageHeader emoji={{ coeur: '🫀', pieges: '🛡️', consequences: '⚖️', repentir: '🚪', reconstruction: '🌱' }[id]} eyebrow={eyebrow} title={t.titre} subtitle={t.sousTitre} />
       <div className="container-ad max-w-3xl">
         <div className="-mt-5 relative flex justify-end gap-1 rounded-2xl bg-white p-1 shadow-card">
           <BookmarkButton type="theme" id={id} label />

@@ -12,7 +12,7 @@ export default function Notifications() {
   return (
     <>
       <Seo title="Notifications" noindex />
-      <PageHeader eyebrow="Notifications" title="Rappels et annonces" subtitle="Les rappels publiés par l'équipe ANDOU DIINEMA." />
+      <PageHeader emoji="🔔" eyebrow="Notifications" title="Rappels et annonces" subtitle="Les rappels publiés par l'équipe ANDOU DIINEMA." />
       <div className="container-ad max-w-2xl">
         <div className="mt-5"><ReminderCard /></div>
         <div className="mt-4 space-y-2.5">

@@ -72,7 +72,7 @@ export default function BilanQuotidien() {
   return (
     <>
       <Seo title="Bilan quotidien" description="Fais le bilan de ta journée en quelques questions, sans culpabiliser, pour avancer chaque jour." noindex />
-      <PageHeader eyebrow={formatDay(today)} title="Fais le bilan de ta journée" subtitle="Quelques questions honnêtes, entre toi et Allah. Personne d'autre ne verra tes réponses." />
+      <PageHeader emoji="📝" eyebrow={formatDay(today)} title="Fais le bilan de ta journée" subtitle="Quelques questions honnêtes, entre toi et Allah. Personne d'autre ne verra tes réponses." />
       <div className="container-ad max-w-2xl">
         <p className="mt-5 flex items-center gap-2 text-sm text-slate-600"><Lock size={15} className="text-brand" />{isGuest ? 'Tes réponses restent sur cet appareil.' : 'Tes réponses sont privées et protégées dans ton compte.'}</p>
         <form onSubmit={save} className="mt-4 space-y-3">

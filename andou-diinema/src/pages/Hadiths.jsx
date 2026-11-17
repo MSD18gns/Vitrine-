@@ -16,7 +16,7 @@ export default function Hadiths() {
   return (
     <>
       <Seo title="Hadiths authentiques" description="Hadiths authentiques sur le repentir, le cœur, la langue, la pudeur et le comportement, avec référence, degré d'authenticité et contexte." />
-      <PageHeader eyebrow="Sunna" title="Hadiths" subtitle="Chaque hadith est présenté avec sa traduction, sa référence, son degré d'authenticité et son contexte, et un lien pour vérifier la source." />
+      <PageHeader emoji="📜" eyebrow="Sunna" title="Hadiths" subtitle="Chaque hadith est présenté avec sa traduction, sa référence, son degré d'authenticité et son contexte, et un lien pour vérifier la source." />
       <div className="container-ad max-w-3xl">
         <div className="relative -mt-6"><SearchBar value={q} onChange={setQ} placeholder="Rechercher un hadith (repentir, regard, colère…)" /></div>
         <div className="no-scrollbar -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">{FILTRES.map(([k, l]) => <button key={k} onClick={() => setF(k)} className={`chip ${f === k ? 'chip-active' : ''}`}>{l}</button>)}</div>

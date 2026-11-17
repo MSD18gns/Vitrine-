@@ -12,7 +12,7 @@ export default function Decouvrir() {
   return (
     <>
       <Seo title="Découvrir" description="Explore les péchés banalisés, les maladies du cœur, les pièges de Shaytan, le repentir et les méthodes pour changer." />
-      <PageHeader eyebrow="Découvrir" title="Ouvre les yeux sur ce que l'on banalise" subtitle="Explore les sujets, comprends les dangers et trouve un chemin concret pour revenir vers Allah." />
+      <PageHeader emoji="🧭" eyebrow="Découvrir" title="Ouvre les yeux sur ce que l'on banalise" subtitle="Explore les sujets, comprends les dangers et trouve un chemin concret pour revenir vers Allah." />
       <div className="container-ad">
         <div className="-mt-6 relative"><SearchBar navigateOnSubmit /></div>
 

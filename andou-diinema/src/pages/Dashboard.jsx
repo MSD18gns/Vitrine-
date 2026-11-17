@@ -96,7 +96,7 @@ export default function Dashboard() {
   return (
     <>
       <Seo title="Mon suivi" noindex />
-      <PageHeader eyebrow="Mon suivi" title={name ? `Assalamou alaykoum, ${name}` : 'Mon suivi'} subtitle={formatDay(today, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} />
+      <PageHeader emoji="🕋" eyebrow="Mon suivi" title={name ? `Assalamou alaykoum, ${name}` : 'Mon suivi'} subtitle={formatDay(today, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} />
       <div className="container-ad">
         {isGuest && (
           <Alert className="mt-5">

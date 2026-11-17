@@ -22,7 +22,7 @@ export default function Programme30Jours() {
   return (
     <>
       <Seo title="Programme de transformation de 30 jours" description="30 jours, 30 missions : prendre conscience, éloigner les tentations, se repentir, renforcer la prière et consolider de nouvelles habitudes." />
-      <PageHeader eyebrow={`Cycle ${data?.cycle || 1}`} title="Programme de transformation — 30 jours" subtitle="Chaque jour : une mission, un enseignement, un verset, un hadith, une action concrète et une invocation.">
+      <PageHeader emoji="📅" eyebrow={`Cycle ${data?.cycle || 1}`} title="Programme de transformation — 30 jours" subtitle="Chaque jour : une mission, un enseignement, un verset, un hadith, une action concrète et une invocation.">
         <div className="mt-6 rounded-2xl bg-white/10 p-4 ring-1 ring-white/15">
           <div className="flex items-center justify-between text-sm"><span>{count} / 30 missions accomplies</span><span className="font-semibold">{Math.round((count / 30) * 100)} %</span></div>
           <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-white/20"><div className="h-full rounded-full bg-white transition-all" style={{ width: `${(count / 30) * 100}%` }} /></div>

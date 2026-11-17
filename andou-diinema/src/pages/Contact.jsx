@@ -20,7 +20,7 @@ export default function Contact() {
   return (
     <>
       <Seo title="Contact" description="Contacter l'équipe ANDOU DIINEMA : question, suggestion, signalement d'une erreur dans une référence." />
-      <PageHeader eyebrow="Contact" title="Nous écrire" subtitle="Une question, une suggestion, une erreur à signaler dans une référence ? Nous lisons chaque message." />
+      <PageHeader emoji="✉️" eyebrow="Contact" title="Nous écrire" subtitle="Une question, une suggestion, une erreur à signaler dans une référence ? Nous lisons chaque message." />
       <div className="container-ad max-w-xl">
         {state.ok ? <Alert type="success" className="mt-6">Merci, ton message a bien été envoyé. Qu'Allah te récompense.</Alert> : (
           <form onSubmit={submit} className="card mt-6 space-y-4 p-5">

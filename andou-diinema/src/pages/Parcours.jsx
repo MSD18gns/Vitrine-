@@ -1,17 +1,93 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Check, Lock, Star, Trophy, X, Play, BookOpen, RotateCcw, DoorOpen } from 'lucide-react'
-import { iconFor } from '../components/stepIcons'
+import { Lock, X, Play, BookOpen, RotateCcw, HelpCircle } from 'lucide-react'
 import Seo from '../components/Seo'
-import StatsBar from '../components/StatsBar'
-import { Spinner, Alert } from '../components/ui'
-import { ChapterArt, PathDecor } from '../components/Illustrations'
+import { Spinner } from '../components/ui'
+import { ChapterArt } from '../components/Illustrations'
 import { Confetti } from '../components/Celebration'
-import { CHAPITRES, ETAPES } from '../content/parcours'
+import { CHAPITRES, ETAPES, EMOJIS } from '../content/parcours'
 import { useJourney } from '../hooks/useJourney'
 import { useContent } from '../hooks/useContent'
+import { store } from '../lib/storage'
 
-const OFFSETS = [0, 58, 86, 58, 0, -58, -86, -58]
+// ---------------------------------------------------------------------------
+//  LE PARCOURS EN ASCENSION
+//  On part du camp de base (en bas) et on grimpe vers le sommet (en haut) :
+//  chapitre 1 tout en bas, chapitre 10 tout en haut, chaque épisode au-dessus
+//  du précédent.
+// ---------------------------------------------------------------------------
+const W = 340            // largeur du sentier
+const STEP = 132         // écart vertical entre deux cases
+const DX = [-70, 62, -40, 74, -66, 48]
+const CX = W / 2
+
+function Hud({ stats, sobre, onRules }) {
+  return (
+    <div className="sticky top-16 z-30 px-3 pt-2">
+      <div className="glass mx-auto flex max-w-xl items-center justify-between gap-1 rounded-2xl px-2 py-1.5 text-white shadow-lg">
+        {!sobre ? (
+          <>
+            <Link to="/recompenses" className="flex min-h-[44px] items-center gap-1 rounded-xl px-2 font-extrabold active:scale-90" aria-label={`Série : ${stats.serie} jours`}><span className={`emoji text-xl ${stats.actifAujourdhui ? 'heartbeat' : 'grayscale'}`}>🔥</span>{stats.serie}</Link>
+            <Link to="/recompenses" className="flex min-h-[44px] items-center gap-1 rounded-xl px-2 font-extrabold active:scale-90" aria-label={`${stats.xp} points d'expérience`}><span className="emoji coin text-xl">💎</span>{stats.xp}</Link>
+            <Link to="/recompenses" className="flex min-h-[44px] items-center rounded-xl px-1 active:scale-90" aria-label={`Lumière du jour : ${stats.lumiere} sur 5`}>
+              {Array.from({ length: 5 }, (_, i) => <span key={i} className={`emoji text-[15px] ${i < stats.lumiere ? '' : 'opacity-25 grayscale'}`}>☀️</span>)}
+            </Link>
+            <Link to="/recompenses" className="grid h-10 min-w-[44px] place-items-center rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 px-2 text-sm font-black text-brand-night shadow-[0_3px_0_#B8891A] active:translate-y-0.5" aria-label={`Niveau ${stats.niveau.niveau}`}>⭐{stats.niveau.niveau}</Link>
+          </>
+        ) : <span className="px-2 text-sm font-semibold">Mon ascension</span>}
+        <button onClick={onRules} className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 active:scale-90" aria-label="Comment jouer ?"><HelpCircle size={21} /></button>
+      </div>
+    </div>
+  )
+}
+
+// Décor : étoiles qui scintillent, nuages qui passent, montagnes
+function Sky({ height }) {
+  const stars = useMemo(() => Array.from({ length: 46 }, (_, i) => ({ x: (i * 37) % 100, y: (i * 61) % 100, s: 2 + (i % 3), d: (i % 7) * 0.4 })), [])
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true" style={{ height }}>
+      <div className="absolute inset-x-0 top-0 h-[900px] bg-gradient-to-b from-amber-200/25 via-emerald-400/10 to-transparent" />
+      {stars.map((s, i) => <span key={i} className="twinkle absolute rounded-full bg-white" style={{ left: `${s.x}%`, top: `${s.y}%`, width: s.s, height: s.s, animationDelay: `${s.d}s` }} />)}
+      {[8, 26, 47, 68, 86].map((t, i) => <span key={t} className="drift emoji absolute text-5xl opacity-30" style={{ top: `${t}%`, animationDelay: `${-i * 7}s`, animationDuration: `${34 + i * 6}s` }}>☁️</span>)}
+      {/* montagnes en arrière-plan, de part et d'autre du sentier */}
+      {Array.from({ length: Math.ceil(height / 900) }, (_, i) => (
+        <svg key={i} viewBox="0 0 400 300" className="absolute left-1/2 w-[760px] -translate-x-1/2 opacity-[.22]" style={{ top: i * 900 + 300 }}>
+          <path d="M0 300 L70 150 L120 210 L190 90 L240 170 L290 120 L400 300 Z" fill="#0B6B47" />
+          <path d="M190 90 L172 126 L190 116 L206 128 Z" fill="#fff" opacity=".6" />
+        </svg>
+      ))}
+    </div>
+  )
+}
+
+function Rules({ onClose }) {
+  const R = [
+    ['🧗', 'Grimpe épisode par épisode', 'Tu pars du camp de base, en bas, et tu montes vers le sommet. Chaque case est un épisode.'],
+    ['🎮', '8 mini-activités par épisode', 'Leçon, verset, hadith, quiz, réflexion, mission, invocation et bilan.'],
+    ['💎', 'Gagne des XP', '+20 XP par épisode, +5 si tu réussis le quiz du premier coup. Les XP te font monter de niveau ⭐.'],
+    ['🔥', 'Garde ta flamme', 'Avance au moins un peu chaque jour pour allonger ta série. Une pause ne retire rien : reviens simplement.'],
+    ['☀️', 'Remplis ta lumière', '5 soleils à remplir chaque jour selon ton objectif. Ils ne font que se remplir, jamais se vider.'],
+    ['🏆', 'Ouvre les coffres', 'Termine les 3 épisodes d\'un camp pour ouvrir son coffre et gagner un badge.'],
+    ['🤲', 'Aucune pénalité', 'Une erreur au quiz ? Tu réessaies. Rien n\'est perdu, rien n\'est bloqué pour te punir.'],
+    ['🚪', 'Le repentir est toujours ouvert', 'Le camp 7 est accessible à tout moment. Ces repères ne mesurent ni ta foi ni ta valeur : seul Allah connaît les cœurs.'],
+  ]
+  return (
+    <div className="fixed inset-0 z-[85] flex items-end justify-center bg-brand-night/60 fade-in sm:items-center" onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-label="Comment jouer" onClick={(e) => e.stopPropagation()} className="sheet-up max-h-[88vh] w-full max-w-md overflow-y-auto rounded-t-[28px] bg-white p-5 sm:rounded-[28px]" style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}>
+        <div className="flex items-center justify-between"><h2 className="text-xl font-black text-brand-deep">🎯 Comment jouer ?</h2><button onClick={onClose} className="grid h-11 w-11 place-items-center rounded-xl text-slate-400" aria-label="Fermer"><X size={20} /></button></div>
+        <ol className="mt-3 space-y-2.5">
+          {R.map(([e, t, d], i) => (
+            <li key={t} className="tilt-in flex gap-3 rounded-2xl bg-brand-mist p-3" style={{ animationDelay: `${i * 0.06}s` }}>
+              <span className="emoji grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white text-2xl shadow-sm">{e}</span>
+              <span><span className="block font-bold text-slate-900">{t}</span><span className="text-sm text-slate-600">{d}</span></span>
+            </li>
+          ))}
+        </ol>
+        <button onClick={onClose} className="btn-3d mt-4 w-full text-base">C'est parti ! 🚀</button>
+      </div>
+    </div>
+  )
+}
 
 function Sheet({ etape, etat, onClose }) {
   const nav = useNavigate()
@@ -20,27 +96,28 @@ function Sheet({ etape, etat, onClose }) {
   const a = etape.article ? article(etape.article) : null
   const locked = etat === 'verrouillee'
   return (
-    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-slate-900/35 fade-in sm:items-center" onClick={onClose}>
+    <div className="fixed inset-0 z-[80] flex items-end justify-center bg-brand-night/50 fade-in sm:items-center" onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-label={etape.titre} onClick={(e) => e.stopPropagation()} className="sheet-up w-full max-w-md rounded-t-[28px] bg-white p-5 shadow-2xl sm:rounded-[28px]" style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}>
         <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-slate-200 sm:hidden" />
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="eyebrow">Chapitre {chap.id} · {chap.titre}</p>
-            <h2 className="mt-1 text-xl font-bold text-slate-900">{etape.titre}</h2>
+        <div className="flex items-start gap-3">
+          <span className={`emoji grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-3xl ${locked ? 'bg-slate-100 grayscale' : 'bg-brand-light float'}`}>{EMOJIS[etape.id]}</span>
+          <div className="min-w-0 flex-1">
+            <p className="eyebrow">Camp {chap.id} · {chap.titre}</p>
+            <h2 className="mt-0.5 text-xl font-black text-slate-900">{etape.titre}</h2>
           </div>
           <button onClick={onClose} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-slate-400 hover:bg-slate-100" aria-label="Fermer"><X size={20} /></button>
         </div>
-        <ul className="mt-3 flex flex-wrap gap-1.5 text-xs font-medium text-slate-600">
-          {['Leçon', 'Verset', 'Hadith', 'Quiz', 'Réflexion', 'Mission', 'Invocation'].map((t) => <li key={t} className="rounded-full bg-brand-mist px-2.5 py-1">{t}</li>)}
+        <ul className="mt-3 flex flex-wrap gap-1.5 text-xs font-semibold text-slate-600">
+          {['📘 Leçon', '📖 Verset', '📜 Hadith', '❓ Quiz', '✍️ Réflexion', '🎯 Mission', '🤲 Invocation'].map((t) => <li key={t} className="rounded-full bg-brand-mist px-2.5 py-1">{t}</li>)}
         </ul>
         {locked ? (
           <>
-            <p className="mt-4 flex gap-2 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600"><Lock size={17} className="mt-0.5 shrink-0" />Termine l'étape précédente pour débloquer celle-ci. Les enseignements restent toujours accessibles dans « Découvrir ».</p>
+            <p className="mt-4 flex gap-2 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600"><Lock size={17} className="mt-0.5 shrink-0" />Termine l'épisode juste en dessous pour débloquer celui-ci. Les enseignements restent toujours lisibles dans « Découvrir ».</p>
             {a && <Link to={`/article/${a.slug}`} className="btn-ghost mt-3 w-full"><BookOpen size={18} />Lire l'article maintenant</Link>}
           </>
         ) : (
           <button onClick={() => nav(`/parcours/etape/${etape.id}`)} className="btn-3d mt-5 w-full text-base">
-            {etat === 'faite' ? <><RotateCcw size={19} />Revoir l'étape (+5 XP)</> : <><Play size={19} className="fill-white" />Commencer · +20 XP</>}
+            {etat === 'faite' ? <><RotateCcw size={19} />Rejouer l'épisode · +5 💎</> : <><Play size={19} className="fill-white" />Jouer · +20 💎</>}
           </button>
         )}
       </div>
@@ -48,14 +125,82 @@ function Sheet({ etape, etat, onClose }) {
   )
 }
 
+// Un camp = un chapitre : panneau en bas, 3 épisodes qui montent, coffre en haut
+function Camp({ c, stats, etats, courante, idx, justDone, nextAfterDone, onOpen, currentRef }) {
+  const etapes = ETAPES.filter((e) => e.chap === c.id)
+  const nbFaites = etapes.filter((e) => stats.faites.has(e.id)).length
+  const complet = nbFaites === etapes.length
+  // points du sentier, de bas en haut : panneau → épisode 1 → 2 → 3 → coffre
+  const n = etapes.length
+  const H = (n + 1) * STEP + 40
+  const pts = [{ x: CX, y: H - 10 }, ...etapes.map((e, k) => ({ x: CX + DX[(idx[e.id]) % DX.length], y: H - (k + 1) * STEP })), { x: CX, y: 46 }]
+  const d = pts.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `C${pts[i - 1].x},${pts[i - 1].y - STEP / 2} ${p.x},${p.y + STEP / 2} ${p.x},${p.y}`)).join(' ')
+  const progress = nbFaites / n
+  return (
+    <section aria-label={`Camp ${c.id} : ${c.titre}`} className="relative">
+      <div className="relative mx-auto" style={{ width: W, height: H }}>
+        <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="absolute inset-0" aria-hidden="true">
+          <path d={d} fill="none" stroke="rgba(255,255,255,.18)" strokeWidth="14" strokeLinecap="round" />
+          <path d={d} fill="none" stroke="rgba(255,255,255,.55)" strokeWidth="3" strokeDasharray="2 12" strokeLinecap="round" />
+          {progress > 0 && <path d={d} fill="none" stroke="#F2C94C" strokeWidth="5" strokeLinecap="round" pathLength="1" strokeDasharray={`${progress * 0.86 + 0.07} 1`} style={{ transition: 'stroke-dasharray 1s ease' }} />}
+        </svg>
+
+        {/* coffre du camp (en haut) */}
+        <Link to={`/recompenses?chapitre=${c.id}`} className={`node-btn absolute ${complet ? 'node-chest' : 'node-locked'}`} style={{ left: CX - 36, top: 46 - 36, width: 72, height: 72 }} aria-label={`Coffre du camp ${c.id}${complet ? ' — ouvert' : ''}`}>
+          <span className={`emoji text-[34px] ${complet ? 'spin3d' : 'grayscale opacity-60'}`}>{complet ? '🏆' : '🎁'}</span>
+        </Link>
+
+        {etapes.map((e, k) => {
+          const st = etats[e.id]
+          const isCur = e.id === courante
+          const x = CX + DX[idx[e.id] % DX.length]
+          const y = H - (k + 1) * STEP
+          const cls = st === 'faite' ? 'node-done' : isCur ? 'node-current' : st === 'ouverte' ? 'node-open' : 'node-locked'
+          const anim = e.id === nextAfterDone ? 'unlock-pop' : e.id === justDone ? 'done-pop' : isCur ? 'float' : ''
+          return (
+            <div key={e.id} ref={isCur ? currentRef : undefined} className="absolute flex flex-col items-center" style={{ left: x - 60, top: y - 40, width: 120 }}>
+              {isCur && <span className="absolute -top-12 z-10 whitespace-nowrap rounded-xl bg-white px-3 py-1.5 text-xs font-black uppercase tracking-wide text-brand shadow-lg bob">{stats.faites.size ? '📍 Tu es ici' : '🚀 Départ'}<span className="absolute -bottom-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 bg-white" /></span>}
+              <button onClick={() => onOpen(e)} className={`node-btn ${cls} ${isCur ? 'pulse-ring' : ''} ${anim}`} style={{ width: 80, height: 80 }} aria-label={`Épisode ${idx[e.id] + 1} : ${e.titre} — ${st === 'faite' ? 'terminé' : st === 'verrouillee' ? 'verrouillé' : 'disponible'}`}>
+                <span className={`emoji text-[34px] ${st === 'verrouillee' ? 'grayscale opacity-40' : ''}`}>{EMOJIS[e.id]}</span>
+                {st === 'faite' && <span className="emoji absolute -right-1 -top-1 text-xl">⭐</span>}
+                {st === 'verrouillee' && <Lock size={18} className="absolute bottom-1 right-1 rounded-full bg-white/80 p-0.5 text-slate-500" />}
+              </button>
+              <span className={`mt-2 rounded-lg px-2 py-0.5 text-center text-[12.5px] font-bold leading-tight ${st === 'verrouillee' ? 'text-emerald-100/50' : 'bg-brand-night/40 text-white'}`}>{e.titre}</span>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* panneau du camp (en bas) */}
+      <div className="relative mx-auto -mt-2 max-w-md px-3">
+        <div className="card-3d relative overflow-hidden rounded-3xl p-4 text-white shadow-[0_8px_0_rgba(3,42,29,.6)] ring-1 ring-white/15" style={{ background: `linear-gradient(135deg, ${c.from}, ${c.to})` }}>
+          <div className="pattern-islamic absolute inset-0" aria-hidden="true" />
+          <div className="relative flex items-center gap-3">
+            <span className="emoji float grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/15 text-3xl">{c.emoji}</span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-black uppercase tracking-[.18em] text-emerald-100">Camp {c.id}{c.toujoursOuvert ? ' · toujours ouvert' : ''}</p>
+              <h2 className="text-lg font-black leading-tight text-white">{c.titre}</h2>
+              <p className="text-[13px] text-emerald-50/90">{c.sous}</p>
+              <div className="mt-2 flex items-center gap-2"><div className="h-2.5 flex-1 overflow-hidden rounded-full bg-white/20"><div className="h-full rounded-full bg-gradient-to-r from-amber-200 to-amber-400 transition-all duration-700" style={{ width: `${progress * 100}%` }} /></div><span className="text-xs font-black">{nbFaites}/{n}</span></div>
+            </div>
+            <ChapterArt motif={c.motif} className="hidden h-16 w-16 shrink-0 sm:block" />
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export default function Parcours() {
   const { stats, etats, courante, prefs, loading, isGuest } = useJourney()
   const location = useLocation()
   const [sheet, setSheet] = useState(null)
+  const [rules, setRules] = useState(() => !store.get('ad:rules-seen', false))
   const justDone = location.state?.justDone
   const [celebrate, setCelebrate] = useState(false)
   const currentRef = useRef(null)
   const scrolled = useRef(false)
+  const idx = useMemo(() => Object.fromEntries(ETAPES.map((e, i) => [e.id, i])), [])
 
   useEffect(() => {
     if (loading || scrolled.current) return
@@ -64,83 +209,44 @@ export default function Parcours() {
     if (justDone) { setCelebrate(true); window.history.replaceState({}, '') }
   }, [loading, justDone])
 
-  const idx = useMemo(() => Object.fromEntries(ETAPES.map((e, i) => [e.id, i])), [])
-  if (loading) return <Spinner label="Chargement du parcours…" />
+  if (loading) return <Spinner label="Préparation de l'ascension…" />
   const nextAfterDone = justDone ? ETAPES[idx[justDone] + 1]?.id : null
+  const closeRules = () => { setRules(false); store.set('ad:rules-seen', true) }
+  const pct = Math.round((stats.etapesFaites / ETAPES.length) * 100)
+  const camps = [...CHAPITRES].reverse() // du sommet (haut) au camp de base (bas)
 
   return (
-    <div className="bg-gradient-to-b from-white to-brand-mist">
-      <Seo title="Mon parcours" description="Le chemin interactif d'ANDOU DIINEMA : 10 chapitres, 30 étapes pour ouvrir les yeux, purifier son cœur et se rapprocher d'Allah." />
-      <Confetti fire={celebrate} pieces={70} />
-      <div className="sticky top-16 z-30 border-b border-brand-deep/5 bg-white/90 backdrop-blur">
-        <div className="container-ad max-w-xl py-1.5"><StatsBar stats={stats} sobre={prefs.sobre} /></div>
+    <div className="relative min-h-screen overflow-x-clip pb-10">
+      <Seo title="Mon parcours" description="L'ascension d'ANDOU DIINEMA : 10 camps, 30 épisodes, du camp de base jusqu'au sommet." />
+      <Confetti fire={celebrate} pieces={80} />
+      <Sky height={camps.length * ((3 + 1) * STEP + 180) + 900} />
+      <Hud stats={stats} sobre={prefs.sobre} onRules={() => setRules(true)} />
+      <h1 className="sr-only">Mon parcours — l'ascension</h1>
+
+      {/* Sommet */}
+      <div className="relative mx-auto mt-6 max-w-md px-4 text-center text-white">
+        <span className="emoji float inline-block text-7xl">🏔️</span>
+        <p className="mt-1 text-xs font-black uppercase tracking-[.2em] text-amber-200">Le sommet</p>
+        <h2 className="text-2xl font-black text-white">Un cœur apaisé 🤍</h2>
+        <p className="mt-1 text-sm text-emerald-100/80">Chaque épisode te fait monter. {pct}% de l'ascension accomplie.</p>
+        <div className="mx-auto mt-3 h-3 max-w-xs overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-gradient-to-r from-amber-200 to-amber-400 transition-all duration-1000" style={{ width: `${pct}%` }} /></div>
       </div>
 
-      <div className="container-ad max-w-xl pb-10">
-        <h1 className="sr-only">Mon parcours</h1>
-        {isGuest && <Alert className="mt-4"><span>Ta progression est enregistrée sur cet appareil. <Link to="/inscription" className="font-semibold underline">Crée un compte</Link> pour la sauvegarder partout.</span></Alert>}
-
-        {CHAPITRES.map((c) => {
-          const etapes = ETAPES.filter((e) => e.chap === c.id)
-          const nbFaites = etapes.filter((e) => stats.faites.has(e.id)).length
-          const complet = nbFaites === etapes.length
-          return (
-            <section key={c.id} className="mt-6" aria-label={`Chapitre ${c.id} : ${c.titre}`}>
-              <div className="relative overflow-hidden rounded-3xl p-4 text-white shadow-card" style={{ background: `linear-gradient(135deg, ${c.from}, ${c.to})` }}>
-                <div className="pattern-islamic absolute inset-0" aria-hidden="true" />
-                <div className="relative flex items-center gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-100">Chapitre {c.id}{c.toujoursOuvert ? ' · toujours ouvert' : ''}</p>
-                    <h2 className="mt-0.5 text-xl font-extrabold text-white">{c.titre}</h2>
-                    <p className="text-sm text-emerald-50/90">{c.sous}</p>
-                    <div className="mt-3 flex items-center gap-2">
-                      <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/20"><div className="h-full rounded-full bg-white transition-all duration-700" style={{ width: `${(nbFaites / etapes.length) * 100}%` }} /></div>
-                      <span className="text-xs font-bold">{nbFaites}/{etapes.length}</span>
-                    </div>
-                  </div>
-                  <ChapterArt motif={c.motif} className="h-20 w-20 shrink-0" />
-                </div>
-              </div>
-
-              <ol className="relative mt-14 flex flex-col items-center gap-14">
-                {etapes.map((e) => {
-                  const i = idx[e.id]
-                  const st = etats[e.id]
-                  const I = iconFor(e.icon)
-                  const isCur = e.id === courante
-                  const cls = st === 'faite' ? 'node-done' : isCur ? 'node-current' : st === 'ouverte' ? 'node-open' : 'node-locked'
-                  const anim = e.id === nextAfterDone ? 'unlock-pop' : e.id === justDone ? 'done-pop' : ''
-                  return (
-                    <li key={e.id} ref={isCur ? currentRef : undefined} className="relative flex flex-col items-center" style={{ transform: `translateX(${OFFSETS[i % OFFSETS.length]}px)` }}>
-                      {isCur && <span className="bob absolute -top-11 z-10 whitespace-nowrap rounded-xl border-2 border-brand-light bg-white px-3 py-1.5 text-xs font-extrabold uppercase tracking-wide text-brand shadow-card">{stats.faites.size ? 'Continuer' : 'Commencer'}<span className="absolute -bottom-[7px] left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-b-2 border-r-2 border-brand-light bg-white" /></span>}
-                      <button onClick={() => setSheet(e)} className={`node-btn ${cls} ${isCur ? 'pulse-ring' : ''} ${anim}`} aria-label={`Étape ${i + 1} : ${e.titre} — ${st === 'faite' ? 'terminée' : st === 'verrouillee' ? 'verrouillée' : 'disponible'}`}>
-                        {st === 'faite' ? <Check size={34} strokeWidth={3.2} /> : st === 'verrouillee' ? <Lock size={28} /> : <I size={32} strokeWidth={2.4} />}
-                        {st === 'faite' && <Star size={18} className="absolute -right-1 -top-1 fill-amber-300 text-amber-500" />}
-                      </button>
-                      <span className={`mt-3 max-w-[9.5rem] text-center text-[13px] font-semibold leading-tight ${st === 'verrouillee' ? 'text-slate-400' : 'text-slate-700'}`}>{e.titre}</span>
-                    </li>
-                  )
-                })}
-                <li className="flex flex-col items-center">
-                  <Link to={`/recompenses?chapitre=${c.id}`} className={`node-btn ${complet ? 'node-chest' : 'node-locked'} h-[68px] w-[68px] ${complet && justDone && etapes.some((e) => e.id === justDone) ? 'badge-pop' : ''}`} aria-label={`Récompense du chapitre ${c.id}${complet ? ' — obtenue' : ''}`}>
-                    <Trophy size={30} className={complet ? 'fill-white/30' : ''} />
-                  </Link>
-                  <span className="mt-2 text-xs font-semibold text-slate-500">{complet ? 'Chapitre accompli' : 'Récompense du chapitre'}</span>
-                </li>
-              </ol>
-              <div className={`mt-4 flex ${c.id % 2 ? 'justify-end' : 'justify-start'} px-6`}><PathDecor kind={c.id} /></div>
-            </section>
-          )
-        })}
-
-        <div className="mt-8 rounded-3xl bg-white p-5 text-center shadow-card">
-          <DoorOpen className="mx-auto text-brand" size={30} />
-          <p className="mt-2 font-semibold text-slate-900">La porte du repentir est toujours ouverte</p>
-          <p className="mt-1 text-sm text-slate-600">Le chapitre 7 est accessible à tout moment, quelle que soit ta progression.</p>
-          <Link to="/parcours/etape/tawbah" className="btn-secondary mt-3 w-full">Ouvrir « La tawbah »</Link>
-        </div>
+      <div className="relative mt-4 space-y-6">
+        {camps.map((c) => <Camp key={c.id} c={c} stats={stats} etats={etats} courante={courante} idx={idx} justDone={justDone} nextAfterDone={nextAfterDone} onOpen={setSheet} currentRef={currentRef} />)}
       </div>
+
+      {/* Camp de base */}
+      <div className="relative mx-auto mt-8 max-w-md px-4 text-center text-white">
+        <span className="emoji text-6xl">🏕️</span>
+        <p className="mt-1 text-xs font-black uppercase tracking-[.2em] text-emerald-200">Camp de base · départ</p>
+        <p className="mt-1 text-sm text-emerald-100/80">{stats.faites.size ? 'Regarde le chemin déjà parcouru, et continue de monter ⬆️' : 'Ton ascension commence ici. Monte vers le premier épisode ⬆️'}</p>
+        {isGuest && <p className="mx-auto mt-4 max-w-sm rounded-2xl bg-white/10 p-3 text-sm text-emerald-50">💾 Ta progression est enregistrée sur cet appareil. <Link to="/inscription" className="font-bold underline">Crée un compte</Link> pour la sauvegarder partout.</p>}
+        <Link to="/parcours/etape/tawbah" className="btn-gold mx-auto mt-4 max-w-sm">🚪 Le repentir est toujours ouvert</Link>
+      </div>
+
       {sheet && <Sheet etape={sheet} etat={etats[sheet.id]} onClose={() => setSheet(null)} />}
+      {rules && <Rules onClose={closeRules} />}
     </div>
   )
 }

@@ -24,7 +24,7 @@ export default function Recompenses() {
   return (
     <>
       <Seo title="Mes récompenses" noindex />
-      <PageHeader eyebrow="Progression" title={`Niveau ${stats.niveau.niveau} · ${stats.niveau.nom}`} subtitle="Des repères pour t'encourager. Ils ne mesurent ni ta foi ni ta valeur auprès d'Allah : seul Allah connaît les cœurs.">
+      <PageHeader emoji="🏅" eyebrow="Progression" title={`Niveau ${stats.niveau.niveau} · ${stats.niveau.nom}`} subtitle="Des repères pour t'encourager. Ils ne mesurent ni ta foi ni ta valeur auprès d'Allah : seul Allah connaît les cœurs.">
         <div className="mt-5 rounded-2xl bg-white/10 p-4 ring-1 ring-white/15">
           <div className="flex justify-between text-sm"><span>{stats.niveau.dansNiveau} / {stats.niveau.requis} XP</span><span>Niveau {stats.niveau.niveau + 1} : {NIVEAUX[Math.min(stats.niveau.niveau, NIVEAUX.length - 1)]}</span></div>
           <div className="mt-2 h-3 overflow-hidden rounded-full bg-white/20"><div className="h-full rounded-full bg-white transition-all duration-700" style={{ width: `${(stats.niveau.dansNiveau / stats.niveau.requis) * 100}%` }} /></div>

@@ -41,7 +41,7 @@ export default function JourProgramme() {
   return (
     <>
       <Seo title={`Jour ${jour} — ${d.mission}`} description={d.explication} />
-      <PageHeader back={['/programme', 'Programme']} eyebrow={`Jour ${jour} / 30 · ${phase?.titre}`} title={d.mission} subtitle={d.enseignement} />
+      <PageHeader emoji="🎯" back={['/programme', 'Programme']} eyebrow={`Jour ${jour} / 30 · ${phase?.titre}`} title={d.mission} subtitle={d.enseignement} />
       <div className="container-ad max-w-3xl">
         <section className="card mt-6 p-4"><h2 className="mb-2 flex items-center gap-2 font-semibold"><Target size={18} className="text-brand" />Mission</h2><p className="text-slate-700">{d.mission}</p></section>
         <section className="mt-4"><h2 className="mb-2 font-semibold">Verset</h2><VerseCard id={d.verset} /></section>

@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { X, Check, BookOpen, ScrollText, HelpCircle, PenLine, Target, HandHeart, Smile, ExternalLink, Gem, Flame, Trophy, ArrowRight, Heart } from 'lucide-react'
+import { X, Check, BookOpen, Trophy, ArrowRight, Heart } from 'lucide-react'
 import Seo from '../components/Seo'
 import { Spinner, Alert } from '../components/ui'
 import InvocationCard from '../components/InvocationCard'
 import { Confetti, CountUp } from '../components/Celebration'
 import { Lantern, ChapterArt } from '../components/Illustrations'
 import { iconFor } from '../components/stepIcons'
-import { CHAPITRES, ETAPES, etapeById, indexEtape } from '../content/parcours'
+import { CHAPITRES, ETAPES, EMOJIS, etapeById, indexEtape } from '../content/parcours'
 import { THEMES } from '../content/themes'
-import { quranLink, sunnahLink, verseRef } from '../content/sources'
+import { verseRef } from '../content/sources'
 import { BADGES, XP } from '../services/gamification'
 import { useJourney } from '../hooks/useJourney'
 import { useContent } from '../hooks/useContent'
@@ -31,7 +31,19 @@ function buildLecture(e, article) {
   return { paragraphes: [] }
 }
 
-const Head = ({ icon: I, label }) => <p className="mb-3 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[.16em] text-brand"><I size={16} />{label}</p>
+const Head = ({ emoji, label }) => <p className="mb-3 flex items-center gap-2 text-xs font-black uppercase tracking-[.16em] text-brand"><span className="emoji text-xl float">{emoji}</span>{label}</p>
+
+// Pluie d'emojis lors d'une bonne réponse (léger, sans bibliothèque)
+function burst(list = ['✨', '🎉', '💚', '⭐', '🌟']) {
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+  const x = innerWidth / 2, y = innerHeight - 160
+  for (let i = 0; i < 14; i++) {
+    const el = document.createElement('span')
+    el.className = 'emoji emoji-burst'; el.textContent = list[i % list.length]
+    el.style.cssText = `left:${x}px;top:${y}px;font-size:${22 + (i % 3) * 8}px;--dx:${(Math.random() - .5) * 320}px;--dy:${-120 - Math.random() * 260}px;--r:${(Math.random() - .5) * 120}deg;animation-delay:${i * 25}ms`
+    document.body.appendChild(el); setTimeout(() => el.remove(), 1600)
+  }
+}
 
 export default function Etape() {
   const { id } = useParams()
@@ -82,6 +94,7 @@ export default function Etape() {
   const verifier = () => {
     const ok = choix === 0
     setVerdict(ok ? 'ok' : 'ko'); setEssais((n) => n + 1)
+    if (ok) burst(essais === 0 ? ['🎉', '⭐', '✨', '💎', '🌟'] : ['✨', '💚', '👏', '🌿'])
     if (navigator.vibrate) navigator.vibrate(ok ? 30 : [20, 40, 20])
   }
   const terminer = async () => {
@@ -101,31 +114,31 @@ export default function Etape() {
     const chapitreFini = stats.chapitresFaits.includes(etape.chap) && !CHAPITRES.find((c) => c.id === etape.chap && ETAPES.filter((e) => e.chap === c.id).every((e) => before.current.faites.has(e.id)))
     const suivante = ETAPES[indexEtape(etape.id) + 1]
     return (
-      <div className="min-h-[85vh] bg-gradient-to-b from-white to-brand-light/60">
+      <div className="min-h-[85vh]">
         <Seo title="Étape terminée" noindex />
         <Confetti fire pieces={chapitreFini ? 160 : 100} />
         <div className="container-ad flex max-w-md flex-col items-center py-10 text-center">
           {chapitreFini ? <div className="badge-pop rounded-[32px] p-4 shadow-card" style={{ background: `linear-gradient(135deg, ${chap.from}, ${chap.to})` }}><ChapterArt motif={chap.motif} className="h-28 w-28" /></div> : <Lantern className="rise h-36 w-36" />}
-          <h1 className="rise mt-4 font-display text-3xl font-bold text-brand-deep">{chapitreFini ? `Chapitre « ${chap.titre} » accompli !` : 'Étape terminée !'}</h1>
-          <p className="rise mt-2 text-slate-600">{chapitreFini ? "Qu'Allah accepte tes efforts et affermisse ton cœur." : "Ma sha Allah ! Chaque pas compte auprès d'Allah."}</p>
+          <h1 className="rise mt-4 font-display text-3xl font-bold text-white">{chapitreFini ? `Chapitre « ${chap.titre} » accompli !` : 'Étape terminée !'}</h1>
+          <p className="rise mt-2 text-emerald-100">{chapitreFini ? "Qu'Allah accepte tes efforts et affermisse ton cœur." : "Ma sha Allah ! Chaque pas compte auprès d'Allah."}</p>
           {!prefs.sobre && (
             <div className="rise mt-6 grid w-full grid-cols-3 gap-3">
-              <div className="rounded-2xl border-2 border-amber-300 bg-white p-3"><p className="text-xs font-bold uppercase text-amber-600">XP</p><p className="flex items-center justify-center gap-1 text-2xl font-extrabold text-amber-600"><Gem size={20} />+<CountUp to={fin.xp} /></p></div>
-              <div className="rounded-2xl border-2 border-orange-300 bg-white p-3"><p className="text-xs font-bold uppercase text-orange-500">Série</p><p className="flex items-center justify-center gap-1 text-2xl font-extrabold text-orange-500"><Flame size={20} />{stats.serie}</p></div>
-              <div className="rounded-2xl border-2 border-emerald-300 bg-white p-3"><p className="text-xs font-bold uppercase text-emerald-700">Niveau</p><p className="text-2xl font-extrabold text-emerald-700">{stats.niveau.niveau}</p></div>
+              <div className="rounded-2xl border-2 border-amber-300 bg-white p-3"><p className="text-xs font-bold uppercase text-amber-600">XP</p><p className="flex items-center justify-center gap-1 text-2xl font-extrabold text-amber-600"><span className="emoji coin">💎</span>+<CountUp to={fin.xp} /></p></div>
+              <div className="rounded-2xl border-2 border-orange-300 bg-white p-3"><p className="text-xs font-bold uppercase text-orange-500">Série</p><p className="flex items-center justify-center gap-1 text-2xl font-extrabold text-orange-500"><span className="emoji heartbeat">🔥</span>{stats.serie}</p></div>
+              <div className="rounded-2xl border-2 border-emerald-300 bg-white p-3"><p className="text-xs font-bold uppercase text-emerald-700">Niveau</p><p className="text-2xl font-extrabold text-emerald-700">⭐{stats.niveau.niveau}</p></div>
             </div>
           )}
-          {fin.parfait && fin.premiere && !prefs.sobre && <p className="rise mt-3 text-sm font-semibold text-brand">Quiz réussi du premier coup : +5 XP bonus</p>}
+          {fin.parfait && fin.premiere && !prefs.sobre && <p className="rise mt-3 text-sm font-semibold text-amber-200">🎯 Quiz réussi du premier coup : +5 💎 bonus</p>}
           {nouveaux.length > 0 && (
             <div className="mt-6 w-full">
-              <p className="mb-2 text-sm font-bold text-slate-700">Nouveau{nouveaux.length > 1 ? 'x' : ''} badge{nouveaux.length > 1 ? 's' : ''} !</p>
+              <p className="mb-2 text-sm font-bold text-white">🏅 Nouveau{nouveaux.length > 1 ? 'x' : ''} badge{nouveaux.length > 1 ? 's' : ''} !</p>
               <div className="flex flex-wrap justify-center gap-3">{nouveaux.map((b, i) => { const B = iconFor(b.icon); return <div key={b.id} className="badge-pop flex w-28 flex-col items-center rounded-2xl bg-white p-3 shadow-card" style={{ animationDelay: `${0.3 + i * 0.15}s` }}><span className="grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-amber-300 to-amber-500 text-white shadow-md"><B size={26} /></span><span className="mt-2 text-xs font-bold text-slate-800">{b.titre}</span></div> })}</div>
             </div>
           )}
           {ressenti === 'difficile' && <Alert className="mt-6 text-left">Tu as dit traverser un moment difficile. Allah est proche : « Ne désespérez pas de la miséricorde d'Allah ». Le chapitre du repentir est toujours ouvert pour toi.</Alert>}
           <div className="mt-8 grid w-full gap-3">
-            <button onClick={() => nav('/parcours', { state: { justDone: etape.id } })} className="btn-3d w-full text-base">Continuer mon parcours <ArrowRight size={19} /></button>
-            {suivante && <Link to={`/parcours/etape/${suivante.id}`} replace className="btn-ghost w-full">Étape suivante : {suivante.titre}</Link>}
+            <button onClick={() => nav('/parcours', { state: { justDone: etape.id } })} className="btn-3d w-full text-base">🧗 Continuer l'ascension <ArrowRight size={19} /></button>
+            {suivante && <Link to={`/parcours/etape/${suivante.id}`} replace className="btn-gold w-full">⬆️ Épisode suivant : {suivante.titre}</Link>}
           </div>
         </div>
       </div>
@@ -135,22 +148,22 @@ export default function Etape() {
   // ------------------------------------------------------------- lecteur
   const canNext = cur !== 'quiz' || verdict === 'ok'
   return (
-    <div className="min-h-[85vh] bg-white">
+    <div className="min-h-[85vh]">
       <Seo title={etape.titre} noindex />
-      <div className="sticky top-16 z-30 bg-white/95 backdrop-blur">
+      <div className="sticky top-16 z-30 bg-brand-night/80 backdrop-blur">
         <div className="container-ad flex max-w-xl items-center gap-3 py-3">
-          <button onClick={() => nav('/parcours')} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-slate-400 hover:bg-slate-100" aria-label="Quitter l'étape"><X size={24} /></button>
-          <div className="bar flex-1" role="progressbar" aria-valuenow={pct} aria-valuemin="0" aria-valuemax="100" aria-label="Progression de l'étape"><span style={{ width: `${Math.max(pct, 4)}%` }} /></div>
-          <span className="w-10 text-right text-xs font-bold text-slate-400">{step + 1}/{STEPS.length}</span>
+          <button onClick={() => nav('/parcours')} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-emerald-100 hover:bg-white/10 active:scale-90" aria-label="Quitter l'étape"><X size={24} /></button>
+          <div className="bar flex-1 bg-white/15" role="progressbar" aria-valuenow={pct} aria-valuemin="0" aria-valuemax="100" aria-label="Progression de l'étape"><span style={{ width: `${Math.max(pct, 4)}%` }} /></div>
+          <span className="w-10 text-right text-xs font-bold text-emerald-100">{step + 1}/{STEPS.length}</span>
         </div>
       </div>
 
-      <div key={cur} className="container-ad slide-in max-w-xl pb-40 pt-2">
+      <div className="container-ad max-w-xl pb-44 pt-3"><div key={cur} className="tilt-in rounded-[28px] bg-white p-5 shadow-[0_10px_0_rgba(3,42,29,.5)]">
         {cur === 'lecture' && (
           <section>
             <div className="mb-5 flex items-center gap-3">
-              <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-white shadow-md" style={{ background: `linear-gradient(135deg, ${chap.from}, ${chap.to})` }}><I size={28} /></span>
-              <div><p className="eyebrow">Chapitre {chap.id} · Leçon</p><h1 className="text-2xl font-extrabold text-slate-900">{etape.titre}</h1></div>
+              <span className="emoji float grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-3xl shadow-md" style={{ background: `linear-gradient(135deg, ${chap.from}, ${chap.to})` }}>{EMOJIS[etape.id]}</span>
+              <div><p className="eyebrow">📘 Camp {chap.id} · Leçon</p><h1 className="text-2xl font-extrabold text-slate-900">{etape.titre}</h1></div>
             </div>
             {lecture.hukm && <p className="mb-3 inline-block rounded-full bg-brand-light px-3 py-1 text-xs font-semibold text-brand-deep">{lecture.hukm}</p>}
             {lecture.paragraphes.map((p, i) => <p key={i} className="mb-4 text-[17px] leading-relaxed text-slate-700">{p}</p>)}
@@ -162,12 +175,12 @@ export default function Etape() {
 
         {cur === 'verset' && v && (
           <section>
-            <Head icon={BookOpen} label="Découvrir un verset" />
+            <Head emoji="📖" label="Découvrir un verset" />
             <div className="rounded-3xl bg-gradient-to-br from-brand-light to-white p-5 ring-1 ring-brand/15">
               {v.ar && <p className="arabic mb-4 text-[26px]">{v.ar}</p>}
               <p className="font-display text-[19px] leading-relaxed text-slate-800">{v.fr}</p>
-              <p className="mt-4 text-sm font-bold text-brand-deep">{verseRef(v)}</p>
-              <a href={quranLink(v)} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex min-h-[40px] items-center gap-1 text-sm font-medium text-brand">Vérifier sur quran.com <ExternalLink size={14} /></a>
+              <p className="mt-4 text-sm font-bold text-brand-deep">📍 {verseRef(v)}</p>
+              <p className="text-xs text-slate-500">Sourate {v.sourate} (n°{v.s}), verset{String(v.a).includes('-') ? 's' : ''} {v.a} — traduction du sens</p>
             </div>
             <p className="mt-4 text-sm text-slate-500">Prends le temps de relire lentement ce verset. Que te dit-il, à toi, aujourd'hui ?</p>
           </section>
@@ -175,21 +188,20 @@ export default function Etape() {
 
         {cur === 'hadith' && h && (
           <section>
-            <Head icon={ScrollText} label="Comprendre un hadith" />
+            <Head emoji="📜" label="Comprendre un hadith" />
             <div className="rounded-3xl bg-white p-5 shadow-card ring-1 ring-slate-100">
               {h.ar && <p className="arabic mb-3 text-2xl">{h.ar}</p>}
               <p className="text-[17px] leading-relaxed text-slate-800">« {h.fr} »</p>
-              <p className="mt-4 text-sm font-bold text-brand-deep">{h.ref}</p>
-              <p className="text-sm text-slate-600">Authenticité : {h.grade}</p>
-              <a href={sunnahLink(h)} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex min-h-[40px] items-center gap-1 text-sm font-medium text-brand">Vérifier la source <ExternalLink size={14} /></a>
+              <p className="mt-4 text-sm font-bold text-brand-deep">📚 {h.ref}</p>
+              <p className="text-sm text-slate-600">✅ Authenticité : {h.grade}</p>
             </div>
-            {h.contexte && <div className="mt-4 rounded-2xl bg-brand-mist p-4 text-[15px] leading-relaxed text-slate-700"><b className="text-brand-deep">Explication :</b> {h.contexte}</div>}
+            {h.contexte && <div className="mt-4 rounded-2xl bg-brand-mist p-4 text-[15px] leading-relaxed text-slate-700"><b className="text-brand-deep">💡 Contexte et explication :</b> {h.contexte}</div>}
           </section>
         )}
 
         {cur === 'quiz' && (
           <section>
-            <Head icon={HelpCircle} label="Petit quiz" />
+            <Head emoji="❓" label="Petit quiz" />
             <h1 className="text-xl font-extrabold leading-snug text-slate-900">{etape.quiz.q}</h1>
             <div className={`mt-5 space-y-3 ${verdict === 'ko' ? 'shake' : ''}`} role="radiogroup">
               {options.map(({ v: label, i }) => {
@@ -204,7 +216,7 @@ export default function Etape() {
 
         {cur === 'reflexion' && (
           <section>
-            <Head icon={PenLine} label="Question de réflexion" />
+            <Head emoji="✍️" label="Question de réflexion" />
             <h1 className="text-xl font-extrabold leading-snug text-slate-900">{etape.reflexion}</h1>
             <textarea value={reflexion} onChange={(e) => setReflexion(e.target.value)} maxLength={600} rows={5} className="input mt-5" placeholder="Écris librement… (facultatif)" aria-label="Ta réflexion" />
             <p className="mt-2 text-xs text-slate-500">Ta réponse est strictement privée : elle n'est jamais publiée ni visible par l'équipe.</p>
@@ -213,7 +225,7 @@ export default function Etape() {
 
         {cur === 'mission' && (
           <section>
-            <Head icon={Target} label="Mission du jour" />
+            <Head emoji="🎯" label="Mission du jour" />
             <div className="rounded-3xl bg-gradient-to-br from-brand-deep to-brand p-5 text-white">
               <p className="text-lg font-bold leading-snug">{etape.mission}</p>
             </div>
@@ -227,7 +239,7 @@ export default function Etape() {
 
         {cur === 'invocation' && (
           <section>
-            <Head icon={HandHeart} label="Invocation à apprendre" />
+            <Head emoji="🤲" label="Invocation à apprendre" />
             <InvocationCard id={etape.invocation} />
             <p className="mt-3 text-sm text-slate-500">Récite-la lentement, trois fois, en comprenant son sens.</p>
           </section>
@@ -235,7 +247,7 @@ export default function Etape() {
 
         {cur === 'bilan' && (
           <section>
-            <Head icon={Smile} label="Bilan de l'étape" />
+            <Head emoji="🌿" label="Bilan de l'épisode" />
             <h1 className="text-xl font-extrabold text-slate-900">Comment te sens-tu après cette étape ?</h1>
             <div className="mt-5 grid gap-3">
               {[['motive', 'Motivé(e) pour changer', '💪'], ['apaise', 'Apaisé(e)', '🌿'], ['reflexion', 'En pleine réflexion', '💭'], ['difficile', 'Je traverse un moment difficile', '🤲']].map(([k, l, e]) => (
@@ -251,7 +263,7 @@ export default function Etape() {
             {err && <Alert type="error" className="mt-4">{err}</Alert>}
           </section>
         )}
-      </div>
+      </div></div>
 
       {/* Barre d'action fixe (pouce) */}
       <div className={`fixed inset-x-0 bottom-0 z-[60] border-t-2 ${verdict === 'ok' && cur === 'quiz' ? 'border-emerald-200 bg-emerald-50' : verdict === 'ko' && cur === 'quiz' ? 'border-amber-200 bg-amber-50' : 'border-slate-100 bg-white'}`} style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
@@ -261,7 +273,7 @@ export default function Etape() {
           {cur === 'quiz' && verdict !== 'ok'
             ? <button onClick={verifier} disabled={choix === null || verdict === 'ko'} className="btn-3d w-full text-base">Vérifier</button>
             : cur === 'bilan'
-              ? <button onClick={terminer} className="btn-3d w-full text-base"><Trophy size={19} />Terminer cette étape</button>
+              ? <button onClick={terminer} className="btn-gold w-full text-base"><Trophy size={19} />Terminer cette étape 🎉</button>
               : <div className="flex gap-2">
                   {(cur === 'reflexion' && !reflexion.trim()) && <button onClick={suivant} className="btn-ghost flex-1">Passer</button>}
                   <button onClick={suivant} disabled={!canNext} className="btn-3d flex-[2] text-base">Continuer</button>

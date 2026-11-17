@@ -7,16 +7,16 @@
 // =====================================================================
 
 export const CHAPITRES = [
-  { id: 1, titre: 'Ouvrir les yeux', sous: 'Découvrir les péchés banalisés', motif: 'eye', from: '#0B6B4C', to: '#13865B' },
-  { id: 2, titre: 'Le regard', sous: 'Comprendre les dangers du regard', motif: 'eye', from: '#0E7A55', to: '#1A9A6A' },
-  { id: 3, titre: 'Mes habitudes', sous: 'Apprendre à maîtriser ses habitudes', motif: 'clock', from: '#0A6450', to: '#12876C' },
-  { id: 4, titre: 'Mes fréquentations', sous: 'Se protéger des mauvaises fréquentations', motif: 'people', from: '#0B5E57', to: '#14857A' },
-  { id: 5, titre: 'Les pièges', sous: 'Comprendre les pièges de Shaytan', motif: 'shield', from: '#085846', to: '#0F7A5E' },
-  { id: 6, titre: 'Le cœur', sous: 'Purifier son cœur', motif: 'heart', from: '#0A6A48', to: '#169161' },
-  { id: 7, titre: 'Le repentir', sous: 'Apprendre le repentir — toujours ouvert', motif: 'door', from: '#075B40', to: '#13865B', toujoursOuvert: true },
-  { id: 8, titre: 'Le lien avec Allah', sous: 'Renforcer sa relation avec Allah', motif: 'moon', from: '#06503A', to: '#0E7651' },
-  { id: 9, titre: 'Bonnes habitudes', sous: 'Construire de bonnes habitudes', motif: 'tree', from: '#0C6E4A', to: '#1B9B66' },
-  { id: 10, titre: 'Consolider', sous: 'Consolider sa transformation', motif: 'star', from: '#075B40', to: '#0F8A5C' },
+  { id: 1, emoji: '👁️', titre: 'Ouvrir les yeux', sous: 'Découvrir les péchés banalisés', motif: 'eye', from: '#0B6B4C', to: '#13865B' },
+  { id: 2, emoji: '🙈', titre: 'Le regard', sous: 'Comprendre les dangers du regard', motif: 'eye', from: '#0E7A55', to: '#1A9A6A' },
+  { id: 3, emoji: '⏳', titre: 'Mes habitudes', sous: 'Apprendre à maîtriser ses habitudes', motif: 'clock', from: '#0A6450', to: '#12876C' },
+  { id: 4, emoji: '🤝', titre: 'Mes fréquentations', sous: 'Se protéger des mauvaises fréquentations', motif: 'people', from: '#0B5E57', to: '#14857A' },
+  { id: 5, emoji: '🛡️', titre: 'Les pièges', sous: 'Comprendre les pièges de Shaytan', motif: 'shield', from: '#085846', to: '#0F7A5E' },
+  { id: 6, emoji: '💚', titre: 'Le cœur', sous: 'Purifier son cœur', motif: 'heart', from: '#0A6A48', to: '#169161' },
+  { id: 7, emoji: '🚪', titre: 'Le repentir', sous: 'Apprendre le repentir — toujours ouvert', motif: 'door', from: '#075B40', to: '#13865B', toujoursOuvert: true },
+  { id: 8, emoji: '🌙', titre: 'Le lien avec Allah', sous: 'Renforcer sa relation avec Allah', motif: 'moon', from: '#06503A', to: '#0E7651' },
+  { id: 9, emoji: '🌳', titre: 'Bonnes habitudes', sous: 'Construire de bonnes habitudes', motif: 'tree', from: '#0C6E4A', to: '#1B9B66' },
+  { id: 10, emoji: '⭐', titre: 'Consolider', sous: 'Consolider sa transformation', motif: 'star', from: '#075B40', to: '#0F8A5C' },
 ]
 
 // q : question, o : options (la première est la bonne — l'ordre est mélangé à l'affichage), e : explication
@@ -199,6 +199,20 @@ export const ETAPES = [
     reflexion: 'Quel sera ton prochain combat pour Allah ?',
     mission: 'Commence le programme de 30 jours ou reprends-le là où tu t\'es arrêté(e).', invocation: 'dunya-akhira' }),
 ]
+
+// Emoji de chaque épisode (affiché sur la case du chemin)
+export const EMOJIS = {
+  banalisation: '🔍', 'point-noir': '🖤', critere: '⚖️',
+  'baisser-regard': '👀', pornographie: '🚫', 'nettoyer-fil': '📱',
+  scrolling: '📵', temps: '⌛', validation: '❤️‍🩹',
+  amis: '👥', relations: '💔', compagnons: '🌸',
+  waswas: '🌬️', procrastination: '⏰', desespoir: '🌅',
+  orgueil: '👑', jalousie: '🔥', medisance: '🤐',
+  tawbah: '🚪', istighfar: '🔁', rechute: '🛟',
+  priere: '🕌', dhikr: '📿', coran: '📖',
+  parents: '🤲', verite: '✅', donner: '🎁',
+  regularite: '🔂', gratitude: '☀️', suite: '🏔️',
+}
 
 export const etapeById = (id) => ETAPES.find((e) => e.id === id)
 export const etapesDuChapitre = (chap) => ETAPES.filter((e) => e.chap === chap)

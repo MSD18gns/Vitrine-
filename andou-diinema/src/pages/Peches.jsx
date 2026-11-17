@@ -18,7 +18,7 @@ export default function Peches() {
   return (
     <>
       <Seo title="Les péchés banalisés" description="Bibliothèque des péchés que beaucoup considèrent comme anodins : le regard, les relations, les réseaux sociaux, la pudeur et le comportement." />
-      <PageHeader eyebrow="Bibliothèque" title="Les péchés banalisés" subtitle="Ce que beaucoup considèrent comme anodin, expliqué à la lumière du Coran et de la Sunna — avec, pour chaque sujet, un chemin concret pour changer." />
+      <PageHeader emoji="👁️" eyebrow="Bibliothèque" title="Les péchés banalisés" subtitle="Ce que beaucoup considèrent comme anodin, expliqué à la lumière du Coran et de la Sunna — avec, pour chaque sujet, un chemin concret pour changer." />
       <div className="container-ad">
         <div className="relative -mt-6"><SearchBar value={q} onChange={setQ} placeholder="Rechercher dans la bibliothèque…" /></div>
         <div className="no-scrollbar -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1" role="tablist" aria-label="Catégories">

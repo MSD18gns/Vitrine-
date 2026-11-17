@@ -20,7 +20,7 @@ export default function Favoris() {
   return (
     <>
       <Seo title="Mes favoris" noindex />
-      <PageHeader eyebrow="Favoris" title="Mes favoris" subtitle="Les articles, versets, hadiths et invocations que tu as enregistrés." />
+      <PageHeader emoji="🔖" eyebrow="Favoris" title="Mes favoris" subtitle="Les articles, versets, hadiths et invocations que tu as enregistrés." />
       <div className="container-ad max-w-3xl">
         {isGuest && list.length > 0 && <p className="mt-4 text-sm text-slate-600">Enregistrés sur cet appareil. <Link to="/inscription" className="font-semibold text-brand">Crée un compte</Link> pour les retrouver partout.</p>}
         {!list.length && <div className="mt-6"><EmptyState icon={Bookmark} title="Aucun favori pour l'instant" text="Appuie sur l'icône d'enregistrement d'un article, d'un verset, d'un hadith ou d'une invocation pour le retrouver ici." action={<Link to="/decouvrir" className="btn-primary">Découvrir les contenus</Link>} /></div>}

@@ -4,7 +4,7 @@ import Seo from '../components/Seo'
 import { PageHeader, Section } from '../components/ui'
 
 const POINTS = [
-  [BookOpen, 'Des sources vérifiables', "Chaque verset renvoie à quran.com, chaque hadith indique sa référence, son degré d'authenticité et son contexte. Aucun texte n'est inventé."],
+  [BookOpen, 'Des sources vérifiables', "Chaque verset est affiché en entier avec sa sourate et son numéro ; chaque hadith avec sa référence, son degré d'authenticité et son contexte, lisibles directement sur le site. Aucun texte n'est inventé."],
   [BadgeCheck, 'Une validation par des personnes qualifiées', "Chaque contenu passe par un circuit : brouillon → relecture → validation par une personne qualifiée en sciences islamiques → publication. Le badge « Validé par le comité » l'indique."],
   [HeartHandshake, 'Avertir sans humilier', "Nous expliquons les dangers avec clarté, mais toujours avec miséricorde : personne n'est jugé, et la porte du repentir reste ouverte."],
   [ShieldCheck, 'Ta vie privée est sacrée', 'Tes réponses personnelles ne sont jamais publiques et restent inaccessibles à l\'équipe.'],
@@ -14,7 +14,7 @@ export default function APropos() {
   return (
     <>
       <Seo title="Notre démarche" description="La mission d'ANDOU DIINEMA, ses sources et son processus de validation religieuse." />
-      <PageHeader eyebrow="ANDOU DIINEMA" title="Notre démarche" subtitle="Réveiller les consciences, expliquer avec les textes, et accompagner concrètement vers le changement." />
+      <PageHeader emoji="🤍" eyebrow="ANDOU DIINEMA" title="Notre démarche" subtitle="Réveiller les consciences, expliquer avec les textes, et accompagner concrètement vers le changement." />
       <div className="container-ad max-w-3xl">
         <p className="mt-6 text-[16.5px] leading-relaxed text-slate-700">« Andou » évoque le fait d'avancer ensemble. ANDOU DIINEMA est né d'un constat : beaucoup de comportements qui éloignent d'Allah sont devenus normaux. Notre mission est d'aider chaque musulman à les reconnaître, à comprendre leurs conséquences à travers le Coran et la Sunna, et à trouver un chemin concret pour changer.</p>
         <Section title="Nos engagements">

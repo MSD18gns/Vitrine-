@@ -4,7 +4,7 @@
 
 @layer base {
   html { -webkit-tap-highlight-color: transparent; scroll-padding-top: 72px; }
-  body { @apply bg-brand-mist text-slate-800 font-sans antialiased; text-rendering: optimizeLegibility; overflow-x: hidden; }
+  body { @apply text-slate-800 font-sans antialiased; background: #032A1D; text-rendering: optimizeLegibility; overflow-x: hidden; }
   h1, h2, h3 { @apply text-brand-deep; }
   ::selection { @apply bg-brand-light text-brand-deep; }
   :focus-visible { @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-white; }
@@ -97,3 +97,70 @@
   @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
   .tap { transition: transform .12s ease; } .tap:active { transform: scale(.97); }
 }
+
+
+/* ===================== THÈME VERT PRINCIPAL ===================== */
+#contenu { background: radial-gradient(1200px 600px at 50% -10%, #0B6B47 0%, #05432F 45%, #032A1D 100%) fixed; }
+/* Les pages de lecture : une « feuille » blanche posée sur le fond vert */
+#contenu > .container-ad {
+  position: relative; z-index: 1; margin-top: -22px; background: #fff;
+  border-radius: 28px 28px 0 0; padding-top: 20px; padding-bottom: 40px; min-height: 60vh;
+  box-shadow: 0 -10px 30px -18px rgba(0,0,0,.45);
+}
+@screen sm { #contenu > .container-ad { border-radius: 32px; margin-bottom: 24px; } }
+.section-title { color: #05432F; }
+
+@layer components {
+  /* Boutons : relief 3D, enfoncement au toucher, reflet animé */
+  .btn { position: relative; overflow: hidden; transform: translateZ(0); transition: transform .12s ease, box-shadow .12s ease, background-color .2s; }
+  .btn-primary { @apply bg-brand text-white; box-shadow: 0 5px 0 #032A1D, 0 10px 20px -10px rgba(3,42,29,.7); }
+  .btn-primary:hover { @apply bg-brand-bright; }
+  .btn-primary:active, .btn-3d:active, .btn-ghost:active, .btn-secondary:active { transform: translateY(4px) scale(.99); }
+  .btn-primary:active { box-shadow: 0 1px 0 #032A1D; }
+  .btn-secondary { box-shadow: 0 4px 0 #b9dcc7; } .btn-secondary:active { box-shadow: 0 1px 0 #b9dcc7; }
+  .btn-ghost { box-shadow: 0 4px 0 #d5e3da; } .btn-ghost:active { box-shadow: 0 1px 0 #d5e3da; }
+  .btn-3d { @apply bg-brand-bright; box-shadow: 0 5px 0 #05432F, 0 12px 22px -10px rgba(3,42,29,.8); }
+  .btn-gold { @apply btn text-brand-night; background: linear-gradient(180deg, #FFE28A, #F2C94C); box-shadow: 0 5px 0 #B8891A, 0 12px 22px -10px rgba(184,137,26,.7); }
+  .btn-gold:active { transform: translateY(4px); box-shadow: 0 1px 0 #B8891A; }
+  .btn-primary::after, .btn-3d::after, .btn-gold::after {
+    content: ''; position: absolute; inset: 0; transform: translateX(-120%) skewX(-20deg);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+  }
+  .glass { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); backdrop-filter: blur(10px); }
+  .card-3d { transform-style: preserve-3d; transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s; }
+  .emoji { font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; line-height: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn-primary::after, .btn-3d::after, .btn-gold::after { animation: shine 3.6s ease-in-out infinite; }
+  @keyframes shine { 0%, 70% { transform: translateX(-120%) skewX(-20deg) } 100% { transform: translateX(220%) skewX(-20deg) } }
+  .card-3d:hover { transform: perspective(700px) rotateX(4deg) rotateY(-4deg) translateY(-3px); }
+  .card-3d:active { transform: perspective(700px) rotateX(2deg) scale(.98); }
+  .float { animation: float 4s ease-in-out infinite; }
+  @keyframes float { 0%, 100% { transform: translateY(0) rotate(0) } 50% { transform: translateY(-10px) rotate(3deg) } }
+  .spin3d { animation: spin3d 6s linear infinite; transform-style: preserve-3d; }
+  @keyframes spin3d { from { transform: perspective(400px) rotateY(0) } to { transform: perspective(400px) rotateY(360deg) } }
+  .coin { animation: coin 2.8s ease-in-out infinite; }
+  @keyframes coin { 0%, 100% { transform: perspective(500px) rotateY(0) } 50% { transform: perspective(500px) rotateY(180deg) } }
+  .twinkle { animation: twinkle 3s ease-in-out infinite; }
+  @keyframes twinkle { 0%, 100% { opacity: .25; transform: scale(.8) } 50% { opacity: 1; transform: scale(1.15) } }
+  .drift { animation: drift 38s linear infinite; }
+  @keyframes drift { from { transform: translateX(-30vw) } to { transform: translateX(110vw) } }
+  .wobble { animation: wobble 2.6s ease-in-out infinite; }
+  @keyframes wobble { 0%, 100% { transform: rotate(0) } 25% { transform: rotate(-6deg) } 75% { transform: rotate(6deg) } }
+  .emoji-burst { position: fixed; pointer-events: none; z-index: 95; animation: burst 1.3s ease-out forwards; }
+  @keyframes burst { 0% { opacity: 0; transform: translate(0, 0) scale(.4) } 15% { opacity: 1 } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.4) rotate(var(--r)) } }
+  .flip-in { animation: flipIn .6s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes flipIn { from { opacity: 0; transform: perspective(800px) rotateX(-35deg) translateY(16px) } to { opacity: 1; transform: none } }
+  .tilt-in { animation: tiltIn .55s cubic-bezier(.2,.9,.3,1.2) both; }
+  @keyframes tiltIn { from { opacity: 0; transform: perspective(700px) rotateY(-25deg) scale(.9) } to { opacity: 1; transform: none } }
+  .heartbeat { animation: heartbeat 1.6s ease-in-out infinite; }
+  @keyframes heartbeat { 0%, 100% { transform: scale(1) } 15% { transform: scale(1.12) } 30% { transform: scale(1) } 45% { transform: scale(1.08) } }
+}
+
+/* Cases du chemin sur fond vert foncé */
+.node-done { background: radial-gradient(circle at 35% 28%, #fff1b8, #f2c94c 55%, #d9a52c); --node-shadow: #9c7212; color: #5a3d00; }
+.node-current { background: radial-gradient(circle at 35% 28%, #6ff0b5, #1fb877 55%, #0d8455); --node-shadow: #05432F; }
+.node-open { background: radial-gradient(circle at 35% 28%, #4fd79b, #18a96c 60%); --node-shadow: #0a5a3f; }
+.node-locked { background: rgba(255,255,255,.10); border: 2px dashed rgba(255,255,255,.28); color: #cfe9dc; box-shadow: 0 6px 0 rgba(0,0,0,.28); }
+.node-chest { background: radial-gradient(circle at 35% 28%, #ffe9a8, #f5b942 60%, #d48a12); --node-shadow: #8f5c06; }

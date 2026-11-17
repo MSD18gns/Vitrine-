@@ -31,7 +31,7 @@ export default function Legal({ page }) {
   return (
     <>
       <Seo title={p.titre} />
-      <PageHeader title={p.titre} />
+      <PageHeader emoji="📄" title={p.titre} />
       <div className="container-ad max-w-3xl">
         {p.blocs.map(([t, x]) => <section key={t} className="mt-8"><h2 className="mb-2 text-lg font-bold">{t}</h2><p className="leading-relaxed text-slate-700">{x}</p></section>)}
         <p className="mt-10 text-sm text-slate-500">Dernière mise à jour : {new Date(2026, 10, 17).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>

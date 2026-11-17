@@ -27,11 +27,12 @@ export function EmptyState({ icon: Icon, title, text, action }) {
   )
 }
 
-export function PageHeader({ eyebrow, title, subtitle, children, back }) {
+export function PageHeader({ eyebrow, title, subtitle, children, back, emoji }) {
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-brand-deep to-brand text-white">
-      <div className="pattern-islamic absolute inset-0" aria-hidden="true" />
-      <div className="container-ad relative py-8 sm:py-12">
+    <div className="relative overflow-hidden text-white">
+      <div className="pattern-islamic absolute inset-0 opacity-60" aria-hidden="true" />
+      {emoji && <span className="emoji float pointer-events-none absolute right-5 top-6 text-5xl opacity-90 sm:right-12 sm:text-6xl" aria-hidden="true">{emoji}</span>}
+      <div className="container-ad relative pb-12 pt-7 sm:pb-16 sm:pt-12">
         {back && <Link to={back[0]} className="mb-3 inline-flex min-h-[40px] items-center text-sm font-medium text-emerald-100 hover:text-white">← {back[1]}</Link>}
         {eyebrow && <p className="mb-2 text-xs font-semibold uppercase tracking-[.18em] text-emerald-100">{eyebrow}</p>}
         <h1 className="font-display text-[28px] font-bold leading-tight text-white sm:text-4xl">{title}</h1>

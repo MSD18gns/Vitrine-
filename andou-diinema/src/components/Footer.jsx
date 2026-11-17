@@ -10,23 +10,23 @@ const COLS = [
 
 export default function Footer() {
   return (
-    <footer className="mt-16 border-t border-brand-deep/10 bg-white">
+    <footer className="border-t border-white/10 bg-brand-night text-emerald-50">
       <div className="container-ad py-10">
         <div className="mb-8 max-w-sm">
           <Logo />
-          <p className="mt-3 text-sm text-slate-600">« Ouvre les yeux, purifie ton cœur et rapproche-toi d'Allah. »</p>
+          <p className="mt-3 text-sm text-emerald-100/80">« Ouvre les yeux, purifie ton cœur et rapproche-toi d'Allah. »</p>
         </div>
         <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
           {COLS.map(([t, links]) => (
             <div key={t}>
-              <h2 className="mb-3 text-sm font-semibold text-brand-deep">{t}</h2>
+              <h2 className="mb-3 text-sm font-semibold text-white">{t}</h2>
               <ul className="space-y-2.5">
-                {links.map(([to, l]) => <li key={to}><Link to={to} className="text-sm text-slate-600 hover:text-brand-deep">{l}</Link></li>)}
+                {links.map(([to, l]) => <li key={to}><Link to={to} className="text-sm text-emerald-100/80 hover:text-white">{l}</Link></li>)}
               </ul>
             </div>
           ))}
         </div>
-        <p className="mt-10 border-t border-slate-100 pt-6 text-xs leading-relaxed text-slate-500">
+        <p className="mt-10 border-t border-white/10 pt-6 text-xs leading-relaxed text-emerald-100/60">
           © {new Date().getFullYear()} ANDOU DIINEMA. Les contenus s'appuient sur le Coran et la Sunna authentique, avec références vérifiables. Ils ne remplacent pas l'avis d'un savant qualifié pour les questions personnelles de jurisprudence.
         </p>
       </div>

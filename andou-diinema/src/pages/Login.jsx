@@ -13,7 +13,7 @@ export function AuthShell({ title, subtitle, children }) {
   useEffect(() => { warmUp() }, [warmUp]) // précharge Supabase pendant la saisie
   return (
     <div className="container-ad flex max-w-md flex-col py-8">
-      <div className="mb-6 text-center"><LogoMark className="mx-auto h-14 w-14" /><h1 className="mt-4 font-display text-2xl font-bold">{title}</h1>{subtitle && <p className="mt-1 text-slate-600">{subtitle}</p>}</div>
+      <div className="mb-6 text-center"><LogoMark className="float mx-auto h-14 w-14" /><h1 className="mt-4 font-display text-2xl font-bold">{title}</h1>{subtitle && <p className="mt-1 text-slate-600">{subtitle}</p>}</div>
       <div className="card p-5">{children}</div>
     </div>
   )

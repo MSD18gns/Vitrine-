@@ -14,7 +14,7 @@ export default function Categorie() {
   return (
     <>
       <Seo title={`${c.titre} — péchés banalisés`} description={c.resume} />
-      <PageHeader back={['/peches', 'Bibliothèque']} eyebrow={`Catégorie ${c.lettre}`} title={c.titre} subtitle={c.resume} />
+      <PageHeader emoji="📂" back={['/peches', 'Bibliothèque']} eyebrow={`Catégorie ${c.lettre}`} title={c.titre} subtitle={c.resume} />
       <div className="container-ad mt-6">
         {cat === 'pudeur' && (
           <Link to="/article/prescriptions-vestimentaires" className="card mb-4 block border-l-4 border-brand p-4 hover:shadow-lg">

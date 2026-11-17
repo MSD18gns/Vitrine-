@@ -15,7 +15,7 @@ export default function Invocations() {
   return (
     <>
       <Seo title="Invocations" description="Invocations du Coran et de la Sunna pour le repentir, la fermeté du cœur, la chasteté, la famille et le quotidien, en arabe, phonétique et français." />
-      <PageHeader eyebrow="Du'a" title="Invocations" subtitle="En arabe, en phonétique et en français, avec leur source. Ajoute-les à tes favoris pour les apprendre." />
+      <PageHeader emoji="🤲" eyebrow="Du'a" title="Invocations" subtitle="En arabe, en phonétique et en français, avec leur source. Ajoute-les à tes favoris pour les apprendre." />
       <div className="container-ad max-w-3xl">
         <div className="relative -mt-6"><SearchBar value={q} onChange={setQ} placeholder="Rechercher une invocation…" /></div>
         <div className="no-scrollbar -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">{themes.map((x) => <button key={x} onClick={() => setT(x)} className={`chip ${t === x ? 'chip-active' : ''}`}>{x}</button>)}</div>

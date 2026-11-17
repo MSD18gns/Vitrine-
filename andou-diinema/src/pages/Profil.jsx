@@ -85,7 +85,7 @@ export default function Profil() {
   return (
     <>
       <Seo title="Profil" noindex />
-      <PageHeader eyebrow="Profil" title={user ? (profile?.display_name || 'Mon profil') : 'Profil'} subtitle={user ? user.email : 'Connecte-toi pour sauvegarder ta progression sur tous tes appareils.'} />
+      <PageHeader emoji="👤" eyebrow="Profil" title={user ? (profile?.display_name || 'Mon profil') : 'Profil'} subtitle={user ? user.email : 'Connecte-toi pour sauvegarder ta progression sur tous tes appareils.'} />
       <div className="container-ad max-w-2xl">
         {msg && <Alert type={msg.type} className="mt-4">{msg.t}</Alert>}
         {!user && (

@@ -7,6 +7,15 @@ React 18 · Vite · Tailwind CSS · React Router · Lucide · Supabase (PostgreS
 
 ---
 
+## Design « jeu » (version 3)
+
+- **Vert principal, blanc secondaire** : fond vert profond (#032A1D → #0B6B47), pages de lecture sur une feuille blanche arrondie.
+- **Parcours en ascension** : on part du **camp de base (en bas)** et on **monte vers le sommet** ; chapitre 1 en bas, chapitre 10 en haut ; sentier doré qui se remplit, ciel étoilé, nuages, montagnes.
+- **Sources lisibles sur place** : versets (arabe + traduction + sourate/numéro) et hadiths (texte, référence, authenticité, contexte dépliable) — plus aucun lien externe.
+- **Animations 2D/3D et emojis** : boutons en relief avec reflet, cartes inclinées en 3D, pièces qui tournent, emojis qui jaillissent à la bonne réponse, coffres 🏆 qui pivotent.
+- **Règles du jeu** (« Comment jouer ? ») affichées à la première visite du parcours.
+- **Accueil** : « Ma charte de transformation » — Apprendre, Changer, Me protéger, Purifier, Construire, Suivre.
+
 ## Parcours interactif (inspiré des applications d'apprentissage gamifiées)
 
 - **Chemin vertical** `/parcours` : 10 chapitres × 3 étapes, nœuds en zigzag, étapes faites / courante (anneau animé) / verrouillées, coffre de fin de chapitre. Le chapitre 7 (repentir) est **toujours ouvert**.
