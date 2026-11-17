@@ -6,6 +6,8 @@ import { PageHeader, Alert, Section } from '../components/ui'
 import { useAuth } from '../hooks/useAuth'
 import { useProgress } from '../hooks/useProgress'
 import { signOut, updateProfile, deleteAccount } from '../services/auth'
+import LanguageSwitcher, { LanguageNotice } from '../components/LanguageSwitcher'
+import { useT } from '../i18n'
 import { DEFAULT_PREFS, askPermission, permission, testNotification, notificationsSupported } from '../services/notifications'
 
 const LABELS = { programme: 'Prochaine étape du parcours', dhikr: 'Moment de dhikr', bilan: 'Bilan du soir' }
@@ -55,6 +57,7 @@ function Reminders() {
 }
 
 export default function Profil() {
+  const { t } = useT()
   const { user, profile, roles, isStaff, refreshProfile, configured } = useAuth()
   const { api } = useProgress()
   const nav = useNavigate()
@@ -106,6 +109,12 @@ export default function Profil() {
             {isStaff && <Link to="/admin" className="card mt-3 flex items-center gap-3 p-4 hover:shadow-lg"><ShieldCheck className="text-brand" /><span className="flex-1 font-semibold">Administration</span><span className="badge bg-brand-light text-brand-deep">{roles.join(', ')}</span></Link>}
           </Section>
         )}
+
+        <Section title={`🌍 ${t('profile.language')}`}>
+          <p className="mb-3 text-sm text-slate-600">{t('profile.languageSub')}</p>
+          <LanguageSwitcher variant="list" />
+          <LanguageNotice className="mt-3" />
+        </Section>
 
         <Section title="Ma progression">
           <div className="grid gap-2">

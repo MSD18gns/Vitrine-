@@ -9,6 +9,7 @@ import { CHAPITRES, ETAPES, EMOJIS } from '../content/parcours'
 import { useJourney } from '../hooks/useJourney'
 import { useContent } from '../hooks/useContent'
 import { store } from '../lib/storage'
+import { useT } from '../i18n'
 
 // ---------------------------------------------------------------------------
 //  LE PARCOURS EN ASCENSION
@@ -22,6 +23,7 @@ const DX = [-70, 62, -40, 74, -66, 48]
 const CX = W / 2
 
 function Hud({ stats, sobre, onRules }) {
+  const { t } = useT()
   return (
     <div className="sticky top-16 z-30 px-3 pt-2">
       <div className="glass mx-auto flex max-w-xl items-center justify-between gap-1 rounded-2xl px-2 py-1.5 text-white shadow-lg">
@@ -34,8 +36,8 @@ function Hud({ stats, sobre, onRules }) {
             </Link>
             <Link to="/recompenses" className="grid h-10 min-w-[44px] place-items-center rounded-xl bg-gradient-to-b from-amber-300 to-amber-500 px-2 text-sm font-black text-brand-night shadow-[0_3px_0_#B8891A] active:translate-y-0.5" aria-label={`Niveau ${stats.niveau.niveau}`}>⭐{stats.niveau.niveau}</Link>
           </>
-        ) : <span className="px-2 text-sm font-semibold">Mon ascension</span>}
-        <button onClick={onRules} className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 active:scale-90" aria-label="Comment jouer ?"><HelpCircle size={21} /></button>
+        ) : <span className="px-2 text-sm font-semibold">{t('l.climb')}</span>}
+        <button onClick={onRules} className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 active:scale-90" aria-label={t('path.rules')}><HelpCircle size={21} /></button>
       </div>
     </div>
   )
@@ -61,20 +63,12 @@ function Sky({ height }) {
 }
 
 function Rules({ onClose }) {
-  const R = [
-    ['🧗', 'Grimpe épisode par épisode', 'Tu pars du camp de base, en bas, et tu montes vers le sommet. Chaque case est un épisode.'],
-    ['🎮', '8 mini-activités par épisode', 'Leçon, verset, hadith, quiz, réflexion, mission, invocation et bilan.'],
-    ['💎', 'Gagne des XP', '+20 XP par épisode, +5 si tu réussis le quiz du premier coup. Les XP te font monter de niveau ⭐.'],
-    ['🔥', 'Garde ta flamme', 'Avance au moins un peu chaque jour pour allonger ta série. Une pause ne retire rien : reviens simplement.'],
-    ['☀️', 'Remplis ta lumière', '5 soleils à remplir chaque jour selon ton objectif. Ils ne font que se remplir, jamais se vider.'],
-    ['🏆', 'Ouvre les coffres', 'Termine les 3 épisodes d\'un camp pour ouvrir son coffre et gagner un badge.'],
-    ['🤲', 'Aucune pénalité', 'Une erreur au quiz ? Tu réessaies. Rien n\'est perdu, rien n\'est bloqué pour te punir.'],
-    ['🚪', 'Le repentir est toujours ouvert', 'Le camp 7 est accessible à tout moment. Ces repères ne mesurent ni ta foi ni ta valeur : seul Allah connaît les cœurs.'],
-  ]
+  const { t } = useT()
+  const R = ['🧗', '🎮', '💎', '🔥', '☀️', '🏆', '🤲', '🚪'].map((e, i) => [e, t(`rules.${i + 1}`), t(`rules.${i + 1}d`)])
   return (
     <div className="fixed inset-0 z-[85] flex items-end justify-center bg-brand-night/60 fade-in sm:items-center" onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-label="Comment jouer" onClick={(e) => e.stopPropagation()} className="sheet-up max-h-[88vh] w-full max-w-md overflow-y-auto rounded-t-[28px] bg-white p-5 sm:rounded-[28px]" style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}>
-        <div className="flex items-center justify-between"><h2 className="text-xl font-black text-brand-deep">🎯 Comment jouer ?</h2><button onClick={onClose} className="grid h-11 w-11 place-items-center rounded-xl text-slate-400" aria-label="Fermer"><X size={20} /></button></div>
+        <div className="flex items-center justify-between"><h2 className="text-xl font-black text-brand-deep">🎯 {t('rules.title')}</h2><button onClick={onClose} className="grid h-11 w-11 place-items-center rounded-xl text-slate-400" aria-label="Fermer"><X size={20} /></button></div>
         <ol className="mt-3 space-y-2.5">
           {R.map(([e, t, d], i) => (
             <li key={t} className="tilt-in flex gap-3 rounded-2xl bg-brand-mist p-3" style={{ animationDelay: `${i * 0.06}s` }}>
@@ -83,13 +77,14 @@ function Rules({ onClose }) {
             </li>
           ))}
         </ol>
-        <button onClick={onClose} className="btn-3d mt-4 w-full text-base">C'est parti ! 🚀</button>
+        <button onClick={onClose} className="btn-3d mt-4 w-full text-base">{t('rules.go')} 🚀</button>
       </div>
     </div>
   )
 }
 
 function Sheet({ etape, etat, onClose }) {
+  const { t } = useT()
   const nav = useNavigate()
   const { article } = useContent()
   const chap = CHAPITRES.find((c) => c.id === etape.chap)
@@ -102,22 +97,22 @@ function Sheet({ etape, etat, onClose }) {
         <div className="flex items-start gap-3">
           <span className={`emoji grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-3xl ${locked ? 'bg-slate-100 grayscale' : 'bg-brand-light float'}`}>{EMOJIS[etape.id]}</span>
           <div className="min-w-0 flex-1">
-            <p className="eyebrow">Camp {chap.id} · {chap.titre}</p>
+            <p className="eyebrow">{t('path.camp')} {chap.id} · {chap.titre}</p>
             <h2 className="mt-0.5 text-xl font-black text-slate-900">{etape.titre}</h2>
           </div>
           <button onClick={onClose} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-slate-400 hover:bg-slate-100" aria-label="Fermer"><X size={20} /></button>
         </div>
         <ul className="mt-3 flex flex-wrap gap-1.5 text-xs font-semibold text-slate-600">
-          {['📘 Leçon', '📖 Verset', '📜 Hadith', '❓ Quiz', '✍️ Réflexion', '🎯 Mission', '🤲 Invocation'].map((t) => <li key={t} className="rounded-full bg-brand-mist px-2.5 py-1">{t}</li>)}
+          {[['📘', 'step.lesson'], ['📖', 'step.verse'], ['📜', 'step.hadith'], ['❓', 'step.quiz'], ['✍️', 'step.reflection'], ['🎯', 'step.mission'], ['🤲', 'step.invocation']].map(([e, k]) => <li key={k} className="rounded-full bg-brand-mist px-2.5 py-1">{e} {t(k)}</li>)}
         </ul>
         {locked ? (
           <>
-            <p className="mt-4 flex gap-2 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600"><Lock size={17} className="mt-0.5 shrink-0" />Termine l'épisode juste en dessous pour débloquer celui-ci. Les enseignements restent toujours lisibles dans « Découvrir ».</p>
-            {a && <Link to={`/article/${a.slug}`} className="btn-ghost mt-3 w-full"><BookOpen size={18} />Lire l'article maintenant</Link>}
+            <p className="mt-4 flex gap-2 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600"><Lock size={17} className="mt-0.5 shrink-0" />{t('path.locked')}</p>
+            {a && <Link to={`/article/${a.slug}`} className="btn-ghost mt-3 w-full"><BookOpen size={18} />{t('path.readArticle')}</Link>}
           </>
         ) : (
           <button onClick={() => nav(`/parcours/etape/${etape.id}`)} className="btn-3d mt-5 w-full text-base">
-            {etat === 'faite' ? <><RotateCcw size={19} />Rejouer l'épisode · +5 💎</> : <><Play size={19} className="fill-white" />Jouer · +20 💎</>}
+            {etat === 'faite' ? <><RotateCcw size={19} />{t('path.replay')} · +5 💎</> : <><Play size={19} className="fill-white" />{t('path.play')} · +20 💎</>}
           </button>
         )}
       </div>
@@ -127,6 +122,7 @@ function Sheet({ etape, etat, onClose }) {
 
 // Un camp = un chapitre : panneau en bas, 3 épisodes qui montent, coffre en haut
 function Camp({ c, stats, etats, courante, idx, justDone, nextAfterDone, onOpen, currentRef }) {
+  const { t } = useT()
   const etapes = ETAPES.filter((e) => e.chap === c.id)
   const nbFaites = etapes.filter((e) => stats.faites.has(e.id)).length
   const complet = nbFaites === etapes.length
@@ -159,7 +155,7 @@ function Camp({ c, stats, etats, courante, idx, justDone, nextAfterDone, onOpen,
           const anim = e.id === nextAfterDone ? 'unlock-pop' : e.id === justDone ? 'done-pop' : isCur ? 'float' : ''
           return (
             <div key={e.id} ref={isCur ? currentRef : undefined} className="absolute flex flex-col items-center" style={{ left: x - 60, top: y - 40, width: 120 }}>
-              {isCur && <span className="absolute -top-12 z-10 whitespace-nowrap rounded-xl bg-white px-3 py-1.5 text-xs font-black uppercase tracking-wide text-brand shadow-lg bob">{stats.faites.size ? '📍 Tu es ici' : '🚀 Départ'}<span className="absolute -bottom-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 bg-white" /></span>}
+              {isCur && <span className="absolute -top-12 z-10 whitespace-nowrap rounded-xl bg-white px-3 py-1.5 text-xs font-black uppercase tracking-wide text-brand shadow-lg bob">{stats.faites.size ? `📍 ${t('path.here')}` : `🚀 ${t('path.departure')}`}<span className="absolute -bottom-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 bg-white" /></span>}
               <button onClick={() => onOpen(e)} className={`node-btn ${cls} ${isCur ? 'pulse-ring' : ''} ${anim}`} style={{ width: 80, height: 80 }} aria-label={`Épisode ${idx[e.id] + 1} : ${e.titre} — ${st === 'faite' ? 'terminé' : st === 'verrouillee' ? 'verrouillé' : 'disponible'}`}>
                 <span className={`emoji text-[34px] ${st === 'verrouillee' ? 'grayscale opacity-40' : ''}`}>{EMOJIS[e.id]}</span>
                 {st === 'faite' && <span className="emoji absolute -right-1 -top-1 text-xl">⭐</span>}
@@ -178,7 +174,7 @@ function Camp({ c, stats, etats, courante, idx, justDone, nextAfterDone, onOpen,
           <div className="relative flex items-center gap-3">
             <span className="emoji float grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/15 text-3xl">{c.emoji}</span>
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-black uppercase tracking-[.18em] text-emerald-100">Camp {c.id}{c.toujoursOuvert ? ' · toujours ouvert' : ''}</p>
+              <p className="text-[11px] font-black uppercase tracking-[.18em] text-emerald-100">{t('path.camp')} {c.id}{c.toujoursOuvert ? ` · ${t('path.alwaysOpen')}` : ''}</p>
               <h2 className="text-lg font-black leading-tight text-white">{c.titre}</h2>
               <p className="text-[13px] text-emerald-50/90">{c.sous}</p>
               <div className="mt-2 flex items-center gap-2"><div className="h-2.5 flex-1 overflow-hidden rounded-full bg-white/20"><div className="h-full rounded-full bg-gradient-to-r from-amber-200 to-amber-400 transition-all duration-700" style={{ width: `${progress * 100}%` }} /></div><span className="text-xs font-black">{nbFaites}/{n}</span></div>
@@ -193,6 +189,7 @@ function Camp({ c, stats, etats, courante, idx, justDone, nextAfterDone, onOpen,
 
 export default function Parcours() {
   const { stats, etats, courante, prefs, loading, isGuest } = useJourney()
+  const { t } = useT()
   const location = useLocation()
   const [sheet, setSheet] = useState(null)
   const [rules, setRules] = useState(() => !store.get('ad:rules-seen', false))
@@ -226,9 +223,9 @@ export default function Parcours() {
       {/* Sommet */}
       <div className="relative mx-auto mt-6 max-w-md px-4 text-center text-white">
         <span className="emoji float inline-block text-7xl">🏔️</span>
-        <p className="mt-1 text-xs font-black uppercase tracking-[.2em] text-amber-200">Le sommet</p>
-        <h2 className="text-2xl font-black text-white">Un cœur apaisé 🤍</h2>
-        <p className="mt-1 text-sm text-emerald-100/80">Chaque épisode te fait monter. {pct}% de l'ascension accomplie.</p>
+        <p className="mt-1 text-xs font-black uppercase tracking-[.2em] text-amber-200">{t('path.summit')}</p>
+        <h2 className="text-2xl font-black text-white">{t('path.summitTitle')} 🤍</h2>
+        <p className="mt-1 text-sm text-emerald-100/80">{t('path.summitSub', { pct })}</p>
         <div className="mx-auto mt-3 h-3 max-w-xs overflow-hidden rounded-full bg-white/15"><div className="h-full rounded-full bg-gradient-to-r from-amber-200 to-amber-400 transition-all duration-1000" style={{ width: `${pct}%` }} /></div>
       </div>
 
@@ -239,10 +236,10 @@ export default function Parcours() {
       {/* Camp de base */}
       <div className="relative mx-auto mt-8 max-w-md px-4 text-center text-white">
         <span className="emoji text-6xl">🏕️</span>
-        <p className="mt-1 text-xs font-black uppercase tracking-[.2em] text-emerald-200">Camp de base · départ</p>
-        <p className="mt-1 text-sm text-emerald-100/80">{stats.faites.size ? 'Regarde le chemin déjà parcouru, et continue de monter ⬆️' : 'Ton ascension commence ici. Monte vers le premier épisode ⬆️'}</p>
-        {isGuest && <p className="mx-auto mt-4 max-w-sm rounded-2xl bg-white/10 p-3 text-sm text-emerald-50">💾 Ta progression est enregistrée sur cet appareil. <Link to="/inscription" className="font-bold underline">Crée un compte</Link> pour la sauvegarder partout.</p>}
-        <Link to="/parcours/etape/tawbah" className="btn-gold mx-auto mt-4 max-w-sm">🚪 Le repentir est toujours ouvert</Link>
+        <p className="mt-1 text-xs font-black uppercase tracking-[.2em] text-emerald-200">{t('path.base')}</p>
+        <p className="mt-1 text-sm text-emerald-100/80">{t(stats.faites.size ? 'path.baseCont' : 'path.baseStart')} ⬆️</p>
+        {isGuest && <p className="mx-auto mt-4 max-w-sm rounded-2xl bg-white/10 p-3 text-sm text-emerald-50">💾 {t('path.guest')} <Link to="/inscription" className="font-bold underline">{t('path.createAccount')}</Link> {t('path.guest2')}</p>}
+        <Link to="/parcours/etape/tawbah" className="btn-gold mx-auto mt-4 max-w-sm">🚪 {t('path.repentOpen')}</Link>
       </div>
 
       {sheet && <Sheet etape={sheet} etat={etats[sheet.id]} onClose={() => setSheet(null)} />}

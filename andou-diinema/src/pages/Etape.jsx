@@ -14,6 +14,8 @@ import { BADGES, XP } from '../services/gamification'
 import { useJourney } from '../hooks/useJourney'
 import { useContent } from '../hooks/useContent'
 import NotFound from './NotFound'
+import { useT } from '../i18n'
+import { LanguageNotice } from '../components/LanguageSwitcher'
 
 // mélange stable des réponses du quiz
 const shuffle = (arr, seed) => {
@@ -51,6 +53,7 @@ export default function Etape() {
   const etape = etapeById(id)
   const { article, versets, hadiths } = useContent()
   const { stats, etats, loading, api, bump, prefs } = useJourney()
+  const { t } = useT()
   const [step, setStep] = useState(0)
   const [choix, setChoix] = useState(null)
   const [verdict, setVerdict] = useState(null) // 'ok' | 'ko'
@@ -71,9 +74,9 @@ export default function Etape() {
     return (
       <div className="container-ad max-w-md py-12 text-center">
         <Seo title={etape.titre} noindex />
-        <h1 className="text-xl font-bold">Étape pas encore débloquée</h1>
-        <p className="mt-2 text-slate-600">Termine l'étape précédente pour l'ouvrir. Les enseignements restent accessibles dans « Découvrir ».</p>
-        <Link to="/parcours" className="btn-primary mt-6 w-full">Retour au parcours</Link>
+        <h1 className="text-xl font-bold">{t('locked.title')}</h1>
+        <p className="mt-2 text-slate-600">{t('locked.sub')}</p>
+        <Link to="/parcours" className="btn-primary mt-6 w-full">{t('locked.back')}</Link>
       </div>
     )
   }
@@ -119,26 +122,26 @@ export default function Etape() {
         <Confetti fire pieces={chapitreFini ? 160 : 100} />
         <div className="container-ad flex max-w-md flex-col items-center py-10 text-center">
           {chapitreFini ? <div className="badge-pop rounded-[32px] p-4 shadow-card" style={{ background: `linear-gradient(135deg, ${chap.from}, ${chap.to})` }}><ChapterArt motif={chap.motif} className="h-28 w-28" /></div> : <Lantern className="rise h-36 w-36" />}
-          <h1 className="rise mt-4 font-display text-3xl font-bold text-white">{chapitreFini ? `Chapitre « ${chap.titre} » accompli !` : 'Étape terminée !'}</h1>
-          <p className="rise mt-2 text-emerald-100">{chapitreFini ? "Qu'Allah accepte tes efforts et affermisse ton cœur." : "Ma sha Allah ! Chaque pas compte auprès d'Allah."}</p>
+          <h1 className="rise mt-4 font-display text-3xl font-bold text-white">{chapitreFini ? `${t('done.chapter')} « ${chap.titre} »` : t('done.title')}</h1>
+          <p className="rise mt-2 text-emerald-100">{t(chapitreFini ? 'done.chapterSub' : 'done.sub')}</p>
           {!prefs.sobre && (
             <div className="rise mt-6 grid w-full grid-cols-3 gap-3">
               <div className="rounded-2xl border-2 border-amber-300 bg-white p-3"><p className="text-xs font-bold uppercase text-amber-600">XP</p><p className="flex items-center justify-center gap-1 text-2xl font-extrabold text-amber-600"><span className="emoji coin">💎</span>+<CountUp to={fin.xp} /></p></div>
-              <div className="rounded-2xl border-2 border-orange-300 bg-white p-3"><p className="text-xs font-bold uppercase text-orange-500">Série</p><p className="flex items-center justify-center gap-1 text-2xl font-extrabold text-orange-500"><span className="emoji heartbeat">🔥</span>{stats.serie}</p></div>
-              <div className="rounded-2xl border-2 border-emerald-300 bg-white p-3"><p className="text-xs font-bold uppercase text-emerald-700">Niveau</p><p className="text-2xl font-extrabold text-emerald-700">⭐{stats.niveau.niveau}</p></div>
+              <div className="rounded-2xl border-2 border-orange-300 bg-white p-3"><p className="text-xs font-bold uppercase text-orange-500">{t('done.series')}</p><p className="flex items-center justify-center gap-1 text-2xl font-extrabold text-orange-500"><span className="emoji heartbeat">🔥</span>{stats.serie}</p></div>
+              <div className="rounded-2xl border-2 border-emerald-300 bg-white p-3"><p className="text-xs font-bold uppercase text-emerald-700">{t('done.level')}</p><p className="text-2xl font-extrabold text-emerald-700">⭐{stats.niveau.niveau}</p></div>
             </div>
           )}
-          {fin.parfait && fin.premiere && !prefs.sobre && <p className="rise mt-3 text-sm font-semibold text-amber-200">🎯 Quiz réussi du premier coup : +5 💎 bonus</p>}
+          {fin.parfait && fin.premiere && !prefs.sobre && <p className="rise mt-3 text-sm font-semibold text-amber-200">🎯 {t('done.bonus')}</p>}
           {nouveaux.length > 0 && (
             <div className="mt-6 w-full">
-              <p className="mb-2 text-sm font-bold text-white">🏅 Nouveau{nouveaux.length > 1 ? 'x' : ''} badge{nouveaux.length > 1 ? 's' : ''} !</p>
+              <p className="mb-2 text-sm font-bold text-white">🏅 {t('done.newBadge')}</p>
               <div className="flex flex-wrap justify-center gap-3">{nouveaux.map((b, i) => { const B = iconFor(b.icon); return <div key={b.id} className="badge-pop flex w-28 flex-col items-center rounded-2xl bg-white p-3 shadow-card" style={{ animationDelay: `${0.3 + i * 0.15}s` }}><span className="grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-amber-300 to-amber-500 text-white shadow-md"><B size={26} /></span><span className="mt-2 text-xs font-bold text-slate-800">{b.titre}</span></div> })}</div>
             </div>
           )}
-          {ressenti === 'difficile' && <Alert className="mt-6 text-left">Tu as dit traverser un moment difficile. Allah est proche : « Ne désespérez pas de la miséricorde d'Allah ». Le chapitre du repentir est toujours ouvert pour toi.</Alert>}
+          {ressenti === 'difficile' && <Alert className="mt-6 text-left">{t('done.hard')}</Alert>}
           <div className="mt-8 grid w-full gap-3">
-            <button onClick={() => nav('/parcours', { state: { justDone: etape.id } })} className="btn-3d w-full text-base">🧗 Continuer l'ascension <ArrowRight size={19} /></button>
-            {suivante && <Link to={`/parcours/etape/${suivante.id}`} replace className="btn-gold w-full">⬆️ Épisode suivant : {suivante.titre}</Link>}
+            <button onClick={() => nav('/parcours', { state: { justDone: etape.id } })} className="btn-3d w-full text-base">🧗 {t('done.climb')} <ArrowRight size={19} /></button>
+            {suivante && <Link to={`/parcours/etape/${suivante.id}`} replace className="btn-gold w-full">⬆️ {t('done.next')} : {suivante.titre}</Link>}
           </div>
         </div>
       </div>
@@ -152,7 +155,7 @@ export default function Etape() {
       <Seo title={etape.titre} noindex />
       <div className="sticky top-16 z-30 bg-brand-night/80 backdrop-blur">
         <div className="container-ad flex max-w-xl items-center gap-3 py-3">
-          <button onClick={() => nav('/parcours')} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-emerald-100 hover:bg-white/10 active:scale-90" aria-label="Quitter l'étape"><X size={24} /></button>
+          <button onClick={() => nav('/parcours')} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-emerald-100 hover:bg-white/10 active:scale-90" aria-label={t('step.quit')}><X size={24} /></button>
           <div className="bar flex-1 bg-white/15" role="progressbar" aria-valuenow={pct} aria-valuemin="0" aria-valuemax="100" aria-label="Progression de l'étape"><span style={{ width: `${Math.max(pct, 4)}%` }} /></div>
           <span className="w-10 text-right text-xs font-bold text-emerald-100">{step + 1}/{STEPS.length}</span>
         </div>
@@ -163,45 +166,46 @@ export default function Etape() {
           <section>
             <div className="mb-5 flex items-center gap-3">
               <span className="emoji float grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-3xl shadow-md" style={{ background: `linear-gradient(135deg, ${chap.from}, ${chap.to})` }}>{EMOJIS[etape.id]}</span>
-              <div><p className="eyebrow">📘 Camp {chap.id} · Leçon</p><h1 className="text-2xl font-extrabold text-slate-900">{etape.titre}</h1></div>
+              <div><p className="eyebrow">📘 {t('path.camp')} {chap.id} · {t('step.lesson')}</p><h1 className="text-2xl font-extrabold text-slate-900">{etape.titre}</h1></div>
             </div>
+            <LanguageNotice className="mb-3" />
             {lecture.hukm && <p className="mb-3 inline-block rounded-full bg-brand-light px-3 py-1 text-xs font-semibold text-brand-deep">{lecture.hukm}</p>}
             {lecture.paragraphes.map((p, i) => <p key={i} className="mb-4 text-[17px] leading-relaxed text-slate-700">{p}</p>)}
-            {lecture.danger && <div className="rounded-2xl bg-amber-50 p-4 text-[15px] leading-relaxed text-amber-950 ring-1 ring-amber-200"><b>Pourquoi est-ce dangereux ?</b> {lecture.danger}</div>}
+            {lecture.danger && <div className="rounded-2xl bg-amber-50 p-4 text-[15px] leading-relaxed text-amber-950 ring-1 ring-amber-200"><b>{t('step.why')}</b> {lecture.danger}</div>}
             {lecture.encadre && <div className="rounded-2xl bg-brand-light p-4 text-[15px] text-brand-deep">{lecture.encadre}</div>}
-            {lecture.lien && <Link to={lecture.lien} className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-brand"><BookOpen size={16} />Approfondir</Link>}
+            {lecture.lien && <Link to={lecture.lien} className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-brand"><BookOpen size={16} />{t('step.deepen')}</Link>}
           </section>
         )}
 
         {cur === 'verset' && v && (
           <section>
-            <Head emoji="📖" label="Découvrir un verset" />
+            <Head emoji="📖" label={t('step.verse')} />
             <div className="rounded-3xl bg-gradient-to-br from-brand-light to-white p-5 ring-1 ring-brand/15">
               {v.ar && <p className="arabic mb-4 text-[26px]">{v.ar}</p>}
               <p className="font-display text-[19px] leading-relaxed text-slate-800">{v.fr}</p>
               <p className="mt-4 text-sm font-bold text-brand-deep">📍 {verseRef(v)}</p>
-              <p className="text-xs text-slate-500">Sourate {v.sourate} (n°{v.s}), verset{String(v.a).includes('-') ? 's' : ''} {v.a} — traduction du sens</p>
+              <p className="text-xs text-slate-500">Sourate {v.sourate} (n°{v.s}), verset{String(v.a).includes('-') ? 's' : ''} {v.a} — {t('step.translation')}</p>
             </div>
-            <p className="mt-4 text-sm text-slate-500">Prends le temps de relire lentement ce verset. Que te dit-il, à toi, aujourd'hui ?</p>
+            <p className="mt-4 text-sm text-slate-500">{t('step.verseHint')}</p>
           </section>
         )}
 
         {cur === 'hadith' && h && (
           <section>
-            <Head emoji="📜" label="Comprendre un hadith" />
+            <Head emoji="📜" label={t('step.hadith')} />
             <div className="rounded-3xl bg-white p-5 shadow-card ring-1 ring-slate-100">
               {h.ar && <p className="arabic mb-3 text-2xl">{h.ar}</p>}
               <p className="text-[17px] leading-relaxed text-slate-800">« {h.fr} »</p>
               <p className="mt-4 text-sm font-bold text-brand-deep">📚 {h.ref}</p>
-              <p className="text-sm text-slate-600">✅ Authenticité : {h.grade}</p>
+              <p className="text-sm text-slate-600">✅ {t('step.authenticity')} : {h.grade}</p>
             </div>
-            {h.contexte && <div className="mt-4 rounded-2xl bg-brand-mist p-4 text-[15px] leading-relaxed text-slate-700"><b className="text-brand-deep">💡 Contexte et explication :</b> {h.contexte}</div>}
+            {h.contexte && <div className="mt-4 rounded-2xl bg-brand-mist p-4 text-[15px] leading-relaxed text-slate-700"><b className="text-brand-deep">💡 {t('step.context')} :</b> {h.contexte}</div>}
           </section>
         )}
 
         {cur === 'quiz' && (
           <section>
-            <Head emoji="❓" label="Petit quiz" />
+            <Head emoji="❓" label={t('step.quiz')} />
             <h1 className="text-xl font-extrabold leading-snug text-slate-900">{etape.quiz.q}</h1>
             <div className={`mt-5 space-y-3 ${verdict === 'ko' ? 'shake' : ''}`} role="radiogroup">
               {options.map(({ v: label, i }) => {
@@ -210,47 +214,47 @@ export default function Etape() {
                 return <button key={i} role="radio" aria-checked={sel} disabled={verdict === 'ok'} onClick={() => { setChoix(i); if (verdict === 'ko') setVerdict(null) }} className={`choice ${cls}`}>{label}</button>
               })}
             </div>
-            <p className="mt-4 text-xs text-slate-400">Pas de pénalité : tu peux réessayer autant que tu veux.</p>
+            <p className="mt-4 text-xs text-slate-400">{t('step.noPenalty')}</p>
           </section>
         )}
 
         {cur === 'reflexion' && (
           <section>
-            <Head emoji="✍️" label="Question de réflexion" />
+            <Head emoji="✍️" label={t('step.reflection')} />
             <h1 className="text-xl font-extrabold leading-snug text-slate-900">{etape.reflexion}</h1>
-            <textarea value={reflexion} onChange={(e) => setReflexion(e.target.value)} maxLength={600} rows={5} className="input mt-5" placeholder="Écris librement… (facultatif)" aria-label="Ta réflexion" />
-            <p className="mt-2 text-xs text-slate-500">Ta réponse est strictement privée : elle n'est jamais publiée ni visible par l'équipe.</p>
+            <textarea value={reflexion} onChange={(e) => setReflexion(e.target.value)} maxLength={600} rows={5} className="input mt-5" placeholder={t('step.reflectionPh')} aria-label="Ta réflexion" />
+            <p className="mt-2 text-xs text-slate-500">{t('step.private')}</p>
           </section>
         )}
 
         {cur === 'mission' && (
           <section>
-            <Head emoji="🎯" label="Mission du jour" />
+            <Head emoji="🎯" label={t('step.mission')} />
             <div className="rounded-3xl bg-gradient-to-br from-brand-deep to-brand p-5 text-white">
               <p className="text-lg font-bold leading-snug">{etape.mission}</p>
             </div>
             <button onClick={() => setEngage(!engage)} aria-pressed={engage} className={`choice mt-4 flex items-center gap-3 ${engage ? 'choice-correct' : ''}`}>
               <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg border-2 ${engage ? 'border-emerald-500 bg-emerald-500 text-white' : 'border-slate-300'}`}>{engage && <Check size={18} strokeWidth={3} />}</span>
-              Je m'engage à la réaliser aujourd'hui, in sha Allah
+              {t('step.commit')}
             </button>
-            <Link to="/suivi" className="mt-3 inline-flex min-h-[44px] items-center text-sm font-semibold text-brand">Ajouter un objectif dans mon suivi →</Link>
+            <Link to="/suivi" className="mt-3 inline-flex min-h-[44px] items-center text-sm font-semibold text-brand">{t('step.addGoal')} →</Link>
           </section>
         )}
 
         {cur === 'invocation' && (
           <section>
-            <Head emoji="🤲" label="Invocation à apprendre" />
+            <Head emoji="🤲" label={t('step.invocation')} />
             <InvocationCard id={etape.invocation} />
-            <p className="mt-3 text-sm text-slate-500">Récite-la lentement, trois fois, en comprenant son sens.</p>
+            <p className="mt-3 text-sm text-slate-500">{t('step.recite')}</p>
           </section>
         )}
 
         {cur === 'bilan' && (
           <section>
-            <Head emoji="🌿" label="Bilan de l'épisode" />
-            <h1 className="text-xl font-extrabold text-slate-900">Comment te sens-tu après cette étape ?</h1>
+            <Head emoji="🌿" label={t('step.review')} />
+            <h1 className="text-xl font-extrabold text-slate-900">{t('step.feel')}</h1>
             <div className="mt-5 grid gap-3">
-              {[['motive', 'Motivé(e) pour changer', '💪'], ['apaise', 'Apaisé(e)', '🌿'], ['reflexion', 'En pleine réflexion', '💭'], ['difficile', 'Je traverse un moment difficile', '🤲']].map(([k, l, e]) => (
+              {[['motive', '💪'], ['apaise', '🌿'], ['reflexion', '💭'], ['difficile', '🤲']].map(([k, e]) => [k, t(`feel.${k}`), e]).map(([k, l, e]) => (
                 <button key={k} onClick={() => setRessenti(k)} aria-pressed={ressenti === k} className={`choice flex items-center gap-3 ${ressenti === k ? 'choice-selected' : ''}`}><span className="text-2xl" aria-hidden="true">{e}</span>{l}</button>
               ))}
             </div>
@@ -268,15 +272,15 @@ export default function Etape() {
       {/* Barre d'action fixe (pouce) */}
       <div className={`fixed inset-x-0 bottom-0 z-[60] border-t-2 ${verdict === 'ok' && cur === 'quiz' ? 'border-emerald-200 bg-emerald-50' : verdict === 'ko' && cur === 'quiz' ? 'border-amber-200 bg-amber-50' : 'border-slate-100 bg-white'}`} style={{ paddingBottom: 'calc(12px + env(safe-area-inset-bottom))' }}>
         <div className="container-ad max-w-xl pt-3">
-          {cur === 'quiz' && verdict === 'ok' && <div className="rise mb-3 flex gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-500 text-white"><Check size={22} strokeWidth={3} /></span><div><p className="font-extrabold text-emerald-800">{essais === 1 ? 'Excellent, du premier coup !' : 'Bravo, c\'est la bonne réponse !'}</p><p className="text-sm text-emerald-900/80">{etape.quiz.e}</p></div></div>}
-          {cur === 'quiz' && verdict === 'ko' && <div className="rise mb-3 flex gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-amber-400 text-white"><Heart size={20} /></span><div><p className="font-extrabold text-amber-800">Pas tout à fait…</p><p className="text-sm text-amber-900/80">Relis tranquillement et choisis une autre réponse. Aucune pénalité.</p></div></div>}
+          {cur === 'quiz' && verdict === 'ok' && <div className="rise mb-3 flex gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-500 text-white"><Check size={22} strokeWidth={3} /></span><div><p className="font-extrabold text-emerald-800">{t(essais === 1 ? 'step.okFirst' : 'step.ok')}</p><p className="text-sm text-emerald-900/80">{etape.quiz.e}</p></div></div>}
+          {cur === 'quiz' && verdict === 'ko' && <div className="rise mb-3 flex gap-3"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-amber-400 text-white"><Heart size={20} /></span><div><p className="font-extrabold text-amber-800">{t('step.ko')}</p><p className="text-sm text-amber-900/80">{t('step.koSub')}</p></div></div>}
           {cur === 'quiz' && verdict !== 'ok'
-            ? <button onClick={verifier} disabled={choix === null || verdict === 'ko'} className="btn-3d w-full text-base">Vérifier</button>
+            ? <button onClick={verifier} disabled={choix === null || verdict === 'ko'} className="btn-3d w-full text-base">{t('step.check')}</button>
             : cur === 'bilan'
-              ? <button onClick={terminer} className="btn-gold w-full text-base"><Trophy size={19} />Terminer cette étape 🎉</button>
+              ? <button onClick={terminer} className="btn-gold w-full text-base"><Trophy size={19} />{t('step.finish')} 🎉</button>
               : <div className="flex gap-2">
-                  {(cur === 'reflexion' && !reflexion.trim()) && <button onClick={suivant} className="btn-ghost flex-1">Passer</button>}
-                  <button onClick={suivant} disabled={!canNext} className="btn-3d flex-[2] text-base">Continuer</button>
+                  {(cur === 'reflexion' && !reflexion.trim()) && <button onClick={suivant} className="btn-ghost flex-1">{t('step.skip')}</button>}
+                  <button onClick={suivant} disabled={!canNext} className="btn-3d flex-[2] text-base">{t('step.continue')}</button>
                 </div>}
         </div>
       </div>

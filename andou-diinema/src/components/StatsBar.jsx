@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Flame, Gem, Sun } from 'lucide-react'
+import { useT } from '../i18n'
 
 // Barre compacte : série, XP, lumière du jour (énergie positive, jamais retirée)
 export default function StatsBar({ stats, sobre, className = '' }) {
@@ -23,15 +24,16 @@ export default function StatsBar({ stats, sobre, className = '' }) {
 }
 
 export function DailyGoal({ stats, compact = false }) {
+  const { t } = useT()
   const pct = Math.min(100, Math.round((stats.xpJour / stats.objectif) * 100))
   return (
     <div className={compact ? '' : 'card p-4'}>
       <div className="mb-2 flex items-center justify-between text-sm">
-        <span className="font-semibold text-slate-800">Objectif du jour</span>
+        <span className="font-semibold text-slate-800">🎯 {t('goal.title')}</span>
         <span className="font-bold text-brand">{Math.min(stats.xpJour, stats.objectif)} / {stats.objectif} XP</span>
       </div>
       <div className="bar"><span style={{ width: `${pct}%` }} /></div>
-      <p className="mt-2 text-xs text-slate-500">{stats.objectifAtteint ? 'Objectif atteint, ma sha Allah ! Tout ce que tu fais en plus est un bonus.' : 'Une étape du parcours, une mission ou ton bilan suffisent à avancer.'}</p>
+      <p className="mt-2 text-xs text-slate-500">{stats.objectifAtteint ? t('goal.done') : t('goal.hint')}</p>
     </div>
   )
 }

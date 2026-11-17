@@ -12,28 +12,31 @@ import { useJourney } from '../hooks/useJourney'
 import { CHAPITRES, ETAPES, EMOJIS, etapeById } from '../content/parcours'
 import { messageSerie } from '../services/gamification'
 import { dayOfYear, hijriToday } from '../lib/dates'
+import { useT } from '../i18n'
+import { LanguageNotice } from '../components/LanguageSwitcher'
 
 const HADITH_JOUR = ['peches-meprises', 'repentants', 'point-noir', 'main-tendue', 'regularite', 'laisse-pour-allah', 'montagne', 'joie-repentir', 'deux-bienfaits', 'bien-ou-silence']
 
 // LA CHARTE : ce que je dois apprendre, changer, protéger, purifier, construire, suivre
 const CHARTE = [
-  { emoji: '🎓', titre: 'Apprendre', texte: 'Les bases de la foi et les textes', couleur: 'from-[#0B6B47] to-[#14905F]', liens: [['📖', 'Hadiths authentiques', '/hadiths'], ['🤲', 'Invocations', '/invocations'], ['🕌', 'Reconstruire sa foi', '/reconstruire']] },
-  { emoji: '🔄', titre: 'Changer', texte: 'Les péchés que l\'on banalise', couleur: 'from-[#0A5F4F] to-[#128571]', liens: [['👁️', 'Le regard', '/peches/regard'], ['📱', 'Réseaux sociaux', '/peches/reseaux'], ['🗣️', 'Comportement', '/peches/comportement']] },
-  { emoji: '🛡️', titre: 'Me protéger', texte: 'Des pièges et des mauvaises influences', couleur: 'from-[#07503A] to-[#0E7A55]', liens: [['🪤', 'Pièges de Shaytan', '/pieges-shaytan'], ['🤝', 'Relations', '/peches/relations'], ['👗', 'La pudeur', '/peches/pudeur']] },
-  { emoji: '💚', titre: 'Purifier', texte: 'Mon cœur et revenir vers Allah', couleur: 'from-[#0B6B47] to-[#1A9A6A]', liens: [['🫀', 'Cœur endurci', '/coeur-endurci'], ['🚪', 'Le repentir', '/repentir'], ['⚖️', 'Les conséquences', '/consequences']] },
-  { emoji: '🌱', titre: 'Construire', texte: 'De nouvelles habitudes, jour après jour', couleur: 'from-[#096146] to-[#13865B]', liens: [['🛟', 'Sortir des péchés', '/sortir-des-peches'], ['📅', 'Programme 30 jours', '/programme'], ['🏔️', 'Mon ascension', '/parcours']] },
-  { emoji: '📊', titre: 'Suivre', texte: 'Ma progression et mes efforts', couleur: 'from-[#05432F] to-[#0B6B47]', liens: [['📝', 'Bilan du jour', '/bilan'], ['🕋', 'Prières & dhikr', '/suivi'], ['🏅', 'Mes récompenses', '/recompenses']] },
+  { emoji: '🎓', k: 'learn', couleur: 'from-[#0B6B47] to-[#14905F]', liens: [['📖', 'l.hadiths', '/hadiths'], ['🤲', 'l.invocations', '/invocations'], ['🕌', 'l.rebuild', '/reconstruire']] },
+  { emoji: '🔄', k: 'change', couleur: 'from-[#0A5F4F] to-[#128571]', liens: [['👁️', 'l.gaze', '/peches/regard'], ['📱', 'l.social', '/peches/reseaux'], ['🗣️', 'l.behavior', '/peches/comportement']] },
+  { emoji: '🛡️', k: 'protect', couleur: 'from-[#07503A] to-[#0E7A55]', liens: [['🪤', 'l.traps', '/pieges-shaytan'], ['🤝', 'l.relations', '/peches/relations'], ['👗', 'l.modesty', '/peches/pudeur']] },
+  { emoji: '💚', k: 'purify', couleur: 'from-[#0B6B47] to-[#1A9A6A]', liens: [['🫀', 'l.heart', '/coeur-endurci'], ['🚪', 'l.repent', '/repentir'], ['⚖️', 'l.consequences', '/consequences']] },
+  { emoji: '🌱', k: 'build', couleur: 'from-[#096146] to-[#13865B]', liens: [['🛟', 'l.exit', '/sortir-des-peches'], ['📅', 'l.p30', '/programme'], ['🏔️', 'l.climb', '/parcours']] },
+  { emoji: '📊', k: 'track', couleur: 'from-[#05432F] to-[#0B6B47]', liens: [['📝', 'l.review', '/bilan'], ['🕋', 'l.prayers', '/suivi'], ['🏅', 'l.rewards', '/recompenses']] },
 ]
 
-function salutation() {
+function salutation(t) {
   const h = new Date().getHours()
-  return h < 5 ? 'Bonne nuit' : h < 12 ? 'Bonjour' : h < 18 ? 'Bon après-midi' : 'Bonsoir'
+  return t(h < 5 ? 'greet.night' : h < 12 ? 'greet.morning' : h < 18 ? 'greet.afternoon' : 'greet.evening')
 }
 
 export default function Home() {
   const { articles, categories } = useContent()
   const { profile, user } = useAuth()
   const { stats, courante, prefs, loading } = useJourney()
+  const { t } = useT()
   const next = etapeById(courante) || ETAPES[0]
   const chap = CHAPITRES.find((c) => c.id === next.chap)
   const name = profile?.display_name || (user?.email ? user.email.split('@')[0] : '')
@@ -52,15 +55,15 @@ export default function Home() {
           <div className="flex items-start gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-xs font-bold uppercase tracking-[.16em] text-emerald-200">{hijriToday()}</p>
-              <h1 className="mt-2 font-display text-[28px] font-bold leading-tight text-white sm:text-4xl">{salutation()}{name ? `, ${name}` : ''} <span className="emoji wobble inline-block">👋</span></h1>
-              <p className="mt-2 text-[15.5px] text-emerald-50/90">{debutant ? "Ce que tu banalises aujourd'hui peut éloigner ton cœur d'Allah demain. Ouvre les yeux, et commence à changer." : messageSerie(stats)}</p>
+              <h1 className="mt-2 font-display text-[28px] font-bold leading-tight text-white sm:text-4xl">{salutation(t)}{name ? `, ${name}` : ''} <span className="emoji wobble inline-block">👋</span></h1>
+              <p className="mt-2 text-[15.5px] text-emerald-50/90">{debutant ? t('home.intro') : messageSerie(stats)}</p>
             </div>
             <Lantern className="float h-28 w-24 shrink-0 sm:h-36 sm:w-32" />
           </div>
 
           {!prefs.sobre && !loading && (
             <div className="mt-5 grid grid-cols-3 gap-2">
-              {[['🔥', stats.serie, `jour${stats.serie > 1 ? 's' : ''} de suite`, 'heartbeat'], ['💎', stats.xp, 'XP gagnés', 'coin'], ['⭐', `Niv. ${stats.niveau.niveau}`, stats.niveau.nom, 'float']].map(([e, v, l, a]) => (
+              {[['🔥', stats.serie, t(stats.serie > 1 ? 'home.days' : 'home.day'), 'heartbeat'], ['💎', stats.xp, t('home.xp'), 'coin'], ['⭐', stats.niveau.niveau, `${t('home.level')} · ${stats.niveau.nom}`, 'float']].map(([e, v, l, a]) => (
                 <Link key={l} to="/recompenses" className="glass card-3d rounded-2xl p-3 active:scale-95">
                   <p className="flex items-center gap-1.5 text-lg font-black"><span className={`emoji ${a}`}>{e}</span>{v}</p>
                   <p className="truncate text-[11px] text-emerald-100">{l}</p>
@@ -74,17 +77,18 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <span className="node-btn node-current pulse-ring h-16 w-16 shrink-0"><span className="emoji float text-3xl">{EMOJIS[next.id]}</span></span>
               <span className="min-w-0 flex-1">
-                <span className="eyebrow">🧗 {debutant ? 'Ton premier épisode' : 'Prochain épisode'} · Camp {chap.id}</span>
+                <span className="eyebrow">🧗 {t(debutant ? 'home.firstEp' : 'home.nextEp')} · {t('home.camp')} {chap.id}</span>
                 <span className="block truncate text-lg font-black">{next.titre}</span>
                 <span className="mt-1 flex items-center gap-2"><span className="h-2 flex-1 overflow-hidden rounded-full bg-brand-light"><span className="block h-full rounded-full bg-gradient-to-r from-amber-300 to-amber-500" style={{ width: `${pct}%` }} /></span><span className="text-xs font-bold text-slate-500">{pct}%</span></span>
               </span>
             </div>
-            <span className="btn-3d mt-4 w-full text-base"><Play size={18} className="fill-white" />{debutant ? 'Commencer l\'ascension' : 'Continuer l\'ascension'} ⬆️</span>
+            <span className="btn-3d mt-4 w-full text-base"><Play size={18} className="fill-white" />{t(debutant ? 'home.start' : 'home.continue')} ⬆️</span>
           </Link>
         </div>
       </section>
 
       <div className="container-ad">
+        <LanguageNotice className="mb-4" />
         {!prefs.sobre && <DailyGoal stats={stats} />}
 
         {/* LA CHARTE */}
@@ -92,22 +96,22 @@ export default function Home() {
           <div className="rounded-[28px] border-4 border-double border-brand/40 bg-gradient-to-b from-brand-mist to-white p-4 sm:p-6">
             <div className="text-center">
               <span className="emoji float inline-block text-4xl">📜</span>
-              <h2 id="charte" className="section-title mt-1">Ma charte de transformation</h2>
-              <p className="mx-auto mt-1 max-w-md text-sm text-slate-600">Six domaines pour savoir exactement quoi apprendre, quoi changer et comment avancer.</p>
+              <h2 id="charte" className="section-title mt-1">{t('charte.title')}</h2>
+              <p className="mx-auto mt-1 max-w-md text-sm text-slate-600">{t('charte.sub')}</p>
             </div>
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
               {CHARTE.map((c, i) => (
-                <div key={c.titre} className="tilt-in overflow-hidden rounded-3xl bg-white shadow-card ring-1 ring-brand/10" style={{ animationDelay: `${i * 0.07}s` }}>
+                <div key={c.k} className="tilt-in overflow-hidden rounded-3xl bg-white shadow-card ring-1 ring-brand/10" style={{ animationDelay: `${i * 0.07}s` }}>
                   <div className={`relative flex items-center gap-3 bg-gradient-to-br ${c.couleur} p-4 text-white`}>
                     <span className="pattern-islamic absolute inset-0" aria-hidden="true" />
                     <span className="emoji float relative grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/15 text-2xl" style={{ animationDelay: `${i * 0.3}s` }}>{c.emoji}</span>
-                    <span className="relative"><span className="block text-xs font-black uppercase tracking-[.16em] text-emerald-100">Je dois…</span><span className="block text-lg font-black">{c.titre}</span><span className="block text-[13px] text-emerald-50/90">{c.texte}</span></span>
+                    <span className="relative"><span className="block text-xs font-black uppercase tracking-[.16em] text-emerald-100">{t('charte.ido')}</span><span className="block text-lg font-black">{t(`charte.${c.k}`)}</span><span className="block text-[13px] text-emerald-50/90">{t(`charte.${c.k}.d`)}</span></span>
                   </div>
                   <div className="grid gap-2 p-3">
                     {c.liens.map(([e, l, to]) => (
                       <Link key={to} to={to} className="group flex min-h-[48px] items-center gap-3 rounded-2xl bg-brand-mist px-3 font-semibold text-slate-800 shadow-[0_3px_0_#d4e6db] transition active:translate-y-[3px] active:shadow-none hover:bg-brand-light">
                         <span className="emoji text-xl transition group-hover:scale-125 group-active:scale-90">{e}</span>
-                        <span className="flex-1 text-[15px]">{l}</span>
+                        <span className="flex-1 text-[15px]">{t(l)}</span>
                         <ArrowRight size={17} className="text-brand transition group-hover:translate-x-1" />
                       </Link>
                     ))}
@@ -118,21 +122,21 @@ export default function Home() {
           </div>
         </section>
 
-        <Section title="💡 Conseil du jour"><ReminderCard /></Section>
+        <Section title={`💡 ${t('home.tip')}`}><ReminderCard /></Section>
 
-        <Section title="📰 Le sujet du jour">
+        <Section title={`📰 ${t('home.topic')}`}>
           <Link to={`/article/${sujet.slug}`} className="card-3d group relative block overflow-hidden rounded-3xl bg-gradient-to-br from-brand-deep to-brand p-5 text-white shadow-[0_8px_0_#032A1D]">
             <div className="pattern-islamic absolute inset-0" aria-hidden="true" />
             <div className="relative">
               <p className="mb-1 text-xs font-semibold uppercase tracking-[.16em] text-emerald-100">{categories.find((c) => c.id === sujet.cat)?.titre}</p>
               <h3 className="font-display text-xl font-bold text-white">{sujet.titre}</h3>
               <p className="mt-1 text-sm text-emerald-50/90">{sujet.accroche}</p>
-              <span className="btn-gold mt-4 min-h-[42px] px-4 text-sm">Lire l'article <ArrowRight size={16} /></span>
+              <span className="btn-gold mt-4 min-h-[42px] px-4 text-sm">{t('home.read')} <ArrowRight size={16} /></span>
             </div>
           </Link>
         </Section>
 
-        <Section title="📜 Le hadith du jour"><HadithCard id={HADITH_JOUR[dayOfYear() % HADITH_JOUR.length]} /></Section>
+        <Section title={`📜 ${t('home.hadith')}`}><HadithCard id={HADITH_JOUR[dayOfYear() % HADITH_JOUR.length]} /></Section>
       </div>
     </>
   )

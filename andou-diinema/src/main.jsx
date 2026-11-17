@@ -6,12 +6,14 @@ import { AuthProvider } from './hooks/useAuth'
 import { ContentProvider } from './hooks/useContent'
 import { ProgressProvider } from './hooks/useProgress'
 import ErrorBoundary from './components/ErrorBoundary'
+import { LanguageProvider } from './i18n'
 import './styles/global.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
+        <LanguageProvider>
         <AuthProvider>
           <ContentProvider>
             <ProgressProvider>
@@ -19,6 +21,7 @@ createRoot(document.getElementById('root')).render(
             </ProgressProvider>
           </ContentProvider>
         </AuthProvider>
+        </LanguageProvider>
       </BrowserRouter>
     </ErrorBoundary>
   </StrictMode>,

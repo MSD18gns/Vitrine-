@@ -7,6 +7,14 @@ React 18 · Vite · Tailwind CSS · React Router · Lucide · Supabase (PostgreS
 
 ---
 
+## Langues : français, wolof, pulaar
+
+- Sélecteur de langue dans l'en-tête (FR / WO / FF) et dans le Profil ; choix mémorisé, attribut `lang` mis à jour.
+- Interface traduite : navigation, accueil et charte, parcours, règles du jeu, épisodes (boutons, quiz, bilan, fin), objectif du jour, profil.
+- Traductions dans `src/i18n/strings.js` (153 clés par langue). Toute clé absente s'affiche en français.
+- ⚠️ Wolof et pulaar : **traductions de travail à faire relire par des locuteurs natifs**.
+- Les enseignements religieux (articles, hadiths, traductions des versets) restent en français avec le texte arabe ; un bandeau l'indique. Leur traduction doit être faite et validée par des personnes qualifiées.
+
 ## Design « jeu » (version 3)
 
 - **Vert principal, blanc secondaire** : fond vert profond (#032A1D → #0B6B47), pages de lecture sur une feuille blanche arrondie.
